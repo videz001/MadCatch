@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from "next/image";
-import { Beaker, Heart, Trophy, Wand2 } from "lucide-react";
+import { Beaker, Heart, Trophy, Wand2, FlaskConical, TestTube, TestTube2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,7 +20,8 @@ const backgrounds = [
   { id: "bg3", name: "Reaction", imageUrl: "https://placehold.co/800x600/152821/D65C5C.png", hint: "chemical reaction" },
 ];
 
-const defaultCharacter: Nft = { id: "default", name: "Default Scientist", imageUrl: "https://placehold.co/96x96/663399/FFFFFF.png", hint: "scientist cartoon" };
+const characterIcons = [Beaker, FlaskConical, TestTube, TestTube2];
+const defaultCharacter: Nft = { id: "default", name: "Default Scientist", imageUrl: "Beaker" };
 
 export default function Home() {
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
@@ -42,15 +43,18 @@ export default function Home() {
   };
 
   const handleCharacterSelect = (nftId: string) => {
-    if (!nftId || isNaN(parseInt(nftId))) {
+    const id = parseInt(nftId);
+    if (!nftId || isNaN(id)) {
       toast({ title: "Invalid ID", description: "Please enter a valid NFT number.", variant: "destructive" });
       return;
     }
+    
+    // Use the ID to pick an icon from the list
+    const IconComponent = characterIcons[id % characterIcons.length];
     const newCharacter: Nft = {
         id: nftId,
         name: `Scientist #${nftId}`,
-        imageUrl: `https://rarity.madscientists.io/images/${nftId}.png?t=${Date.now()}`,
-        hint: "scientist cartoon"
+        imageUrl: IconComponent.displayName || 'Beaker', // Store icon name
     };
     setSelectedCharacter(newCharacter);
     toast({ title: "Character Changed", description: `Now playing as Scientist #${nftId}` });

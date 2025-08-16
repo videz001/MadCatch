@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from 'react';
-import { FlaskConical } from 'lucide-react';
+import { FlaskConical, Beaker, TestTube, TestTube2 } from 'lucide-react';
 import { useGameLogic } from '@/hooks/use-game-logic';
-import Image from 'next/image';
 
 interface GameScreenProps {
-  characterImage: string;
+  characterImage: string; // Now represents the icon name
   backgroundImage: string;
   onGameOver: (score: number) => void;
   onScoreUpdate: (score: number) => void;
@@ -14,6 +13,13 @@ interface GameScreenProps {
   maxMisses: number;
   isPlaying: boolean;
 }
+
+const iconMap: { [key: string]: React.ElementType } = {
+    Beaker,
+    FlaskConical,
+    TestTube,
+    TestTube2,
+};
 
 export default function GameScreen({
   characterImage,
@@ -51,6 +57,8 @@ export default function GameScreen({
     onMiss
   });
 
+  const IconComponent = iconMap[characterImage] || Beaker;
+
   return (
     <div
       ref={gameAreaRef}
@@ -61,21 +69,14 @@ export default function GameScreen({
         <>
           {/* Character */}
           <div
-            className="absolute bottom-5 transition-[left] duration-75 ease-linear"
+            className="absolute bottom-5 transition-[left] duration-75 ease-linear flex items-center justify-center"
             style={{
               left: `${characterX}px`,
               width: '80px',
               height: '80px',
             }}
           >
-            <img
-              src={characterImage}
-              alt="Game Character"
-              width={80}
-              height={80}
-              crossOrigin="anonymous"
-              className="object-contain w-full h-full"
-            />
+            <IconComponent className="w-20 h-20 text-primary" />
           </div>
 
           {/* Flasks */}
