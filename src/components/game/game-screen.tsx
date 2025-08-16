@@ -68,12 +68,12 @@ export default function GameScreen({
               height: '80px',
             }}
           >
-            <Image
+            <img
               src={characterImage}
               alt="Game Character"
               width={80}
               height={80}
-              unoptimized
+              crossOrigin="anonymous"
               className="object-contain w-full h-full"
             />
           </div>

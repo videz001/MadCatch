@@ -49,12 +49,12 @@ export default function CharacterSelector({
             </form>
             <div className="mt-4 flex flex-col items-center justify-center gap-2 p-4 border rounded-lg bg-muted">
                 <h3 className="font-semibold">Current Character</h3>
-                <Image
+                <img
                     src={selectedCharacter.imageUrl}
                     alt={selectedCharacter.name}
                     width={96}
                     height={96}
-                    unoptimized
+                    crossOrigin="anonymous"
                     data-ai-hint={selectedCharacter.hint}
                     className="rounded-full bg-muted-foreground/20 object-cover aspect-square w-24 h-24"
                 />
