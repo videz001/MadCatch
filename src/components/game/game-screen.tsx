@@ -69,7 +69,7 @@ export default function GameScreen({
               height: '80px',
             }}
           >
-            <img
+            <Image
               src={characterImage}
               alt="Game Character"
               width={80}

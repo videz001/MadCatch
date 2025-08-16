@@ -23,6 +23,12 @@ const backgrounds = [
   { id: "bg3", name: "Reaction", imageUrl: "https://placehold.co/800x600/152821/D65C5C.png", hint: "chemical reaction" },
 ];
 
+const staticNfts: Nft[] = [
+    { id: "1", name: "Scientist #1", imageUrl: "https://rarity.madscientists.io/images/1.png", hint: "scientist cartoon" },
+    { id: "2", name: "Scientist #2", imageUrl: "https://rarity.madscientists.io/images/2.png", hint: "scientist cartoon" },
+    { id: "3", name: "Scientist #3", imageUrl: "https://rarity.madscientists.io/images/3.png", hint: "scientist cartoon" },
+];
+
 export default function Home() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [nfts, setNfts] = useState<Nft[]>([]);
@@ -50,18 +56,12 @@ export default function Home() {
     setWalletAddress(address);
     toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...` });
     
-    // Fetch NFTs
+    // Use static list of NFTs
     setIsNftsLoading(true);
     setTimeout(() => {
-        const cacheBuster = `?t=${new Date().getTime()}`;
-        const fetchedNfts: Nft[] = [
-            { id: "1", name: "Scientist #1", imageUrl: `https://rarity.madscientists.io/images/1.png${cacheBuster}`, hint: "scientist cartoon" },
-            { id: "2", name: "Scientist #2", imageUrl: `https://rarity.madscientists.io/images/2.png${cacheBuster}`, hint: "scientist cartoon" },
-            { id: "3", name: "Scientist #3", imageUrl: `https://rarity.madscientists.io/images/3.png${cacheBuster}`, hint: "scientist cartoon" },
-        ];
-        setNfts(fetchedNfts);
+        setNfts(staticNfts);
         setIsNftsLoading(false);
-    }, 1500);
+    }, 500);
   };
 
   const handleCharacterSelect = (character: Nft) => {
