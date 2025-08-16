@@ -54,9 +54,9 @@ export default function Home() {
     setIsNftsLoading(true);
     setTimeout(() => {
         const fetchedNfts: Nft[] = [
-            { id: "nft1", name: "Scientist #1", imageUrl: "/images/nft1.png", hint: "scientist cartoon" },
-            { id: "nft2", name: "Scientist #2", imageUrl: "/images/nft2.png", hint: "scientist cartoon" },
-            { id: "nft3", name: "Scientist #3", imageUrl: "/images/nft3.png", hint: "scientist cartoon" },
+            { id: "nft1", name: "Scientist #1", imageUrl: "https://placehold.co/150x150/7E20C9/FFFFFF.png", hint: "scientist cartoon" },
+            { id: "nft2", name: "Scientist #2", imageUrl: "https://placehold.co/150x150/C92084/FFFFFF.png", hint: "scientist cartoon" },
+            { id: "nft3", name: "Scientist #3", imageUrl: "https://placehold.co/150x150/20C93D/FFFFFF.png", hint: "scientist cartoon" },
         ];
         setNfts(fetchedNfts);
         setIsNftsLoading(false);
