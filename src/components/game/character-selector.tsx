@@ -1,6 +1,5 @@
 "use client";
 
-import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from "@/lib/utils";
@@ -56,13 +55,13 @@ export default function CharacterSelector({
                   selectedId === character.id ? 'border-primary bg-primary/10' : 'hover:bg-muted'
                 )}
               >
-                <Image
+                <img
                   src={character.imageUrl}
                   alt={character.name}
                   width={96}
                   height={96}
                   data-ai-hint={character.hint}
-                  className="rounded-full bg-muted object-cover aspect-square"
+                  className="rounded-full bg-muted object-cover aspect-square w-24 h-24"
                 />
                 <p className="text-sm text-center font-medium truncate w-full">{character.name}</p>
               </div>
