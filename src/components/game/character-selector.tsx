@@ -21,9 +21,7 @@ export default function CharacterSelector({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (nftId) {
-      onSelectById(nftId);
-    }
+    onSelectById(nftId);
   };
 
   return (
@@ -60,6 +58,7 @@ export default function CharacterSelector({
                             height={96}
                             className="object-cover"
                             unoptimized
+                            crossOrigin="anonymous"
                          />
                     )}
                 </div>

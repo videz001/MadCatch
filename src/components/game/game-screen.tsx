@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from 'react';
-import { FlaskConical } from 'lucide-react';
 import { useGameLogic } from '@/hooks/use-game-logic';
 import Image from 'next/image';
 
@@ -14,6 +13,8 @@ interface GameScreenProps {
   maxMisses: number;
   isPlaying: boolean;
 }
+
+const flaskImageUrl = 'https://i.imgur.com/oEvGej0.png';
 
 export default function GameScreen({
   characterImage,
@@ -41,7 +42,7 @@ export default function GameScreen({
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  const { characterX, flasks } = useGameLogic({
+  const { characterX, flask } = useGameLogic({
     gameAreaWidth: dimensions.width,
     gameAreaHeight: dimensions.height,
     maxMisses,
@@ -75,22 +76,31 @@ export default function GameScreen({
                 height={80}
                 className="object-contain"
                 unoptimized
+                crossOrigin="anonymous"
             />
           </div>
 
-          {/* Flasks */}
-          {flasks.map(flask => (
+          {/* Flask */}
+          {flask && (
             <div
               key={flask.id}
-              className="absolute text-primary"
+              className="absolute"
               style={{
                 left: `${flask.x}px`,
                 top: `${flask.y}px`,
+                width: '40px',
+                height: '40px'
               }}
             >
-              <FlaskConical className="w-10 h-10" fill="currentColor" />
+              <Image 
+                src={flaskImageUrl} 
+                alt="Falling Flask" 
+                width={40} 
+                height={40}
+                unoptimized
+              />
             </div>
-          ))}
+          )}
         </>
       )}
     </div>

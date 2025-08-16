@@ -20,7 +20,7 @@ const backgrounds = [
   { id: "bg3", name: "Reaction", imageUrl: "https://placehold.co/800x600/152821/D65C5C.png", hint: "chemical reaction" },
 ];
 
-const defaultCharacter: Nft = { id: "1", name: "Default Scientist", imageUrl: "https://rarity.madscientists.io/images/1.png" };
+const defaultCharacter: Nft = { id: "default", name: "Default Scientist", imageUrl: "https://i.imgur.com/6nVF8r7.png" };
 
 export default function Home() {
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
@@ -44,6 +44,7 @@ export default function Home() {
   const handleCharacterSelect = (nftId: string) => {
     if (!nftId || isNaN(parseInt(nftId))) {
       toast({ title: "Invalid ID", description: "Please enter a valid NFT number.", variant: "destructive" });
+      setSelectedCharacter(defaultCharacter);
       return;
     }
     const newCharacter: Nft = {

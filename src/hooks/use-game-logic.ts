@@ -3,10 +3,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 const CHARACTER_WIDTH = 80;
-const CHARACTER_SPEED = 25;
+const INITIAL_SPEED = 0;
+const MAX_SPEED = 20;
+const ACCELERATION = 0.5;
+const FRICTION = 0.95;
 const FLASK_WIDTH = 40;
 const FLASK_HEIGHT = 40;
-const FLASK_SPAWN_RATE = 1000; // ms
+const INITIAL_FLASK_SPEED = 2;
+const FLASK_ACCELERATION = 0.05;
 
 interface Flask {
   id: number;
@@ -35,21 +39,40 @@ export const useGameLogic = ({
   onMiss
 }: UseGameLogicProps) => {
   const [characterX, setCharacterX] = useState(gameAreaWidth / 2 - CHARACTER_WIDTH / 2);
-  const [flasks, setFlasks] = useState<Flask[]>([]);
+  const [flask, setFlask] = useState<Flask | null>(null);
   const [score, setScore] = useState(0);
   const [misses, setMisses] = useState(0);
   
-  const gameLoopRef = useRef<number>();
-  const flaskSpawnerRef = useRef<NodeJS.Timeout>();
+  const [velocityX, setVelocityX] = useState(INITIAL_SPEED);
+  const keysRef = useRef<{ [key: string]: boolean }>({});
 
+  const gameLoopRef = useRef<number>();
+
+  const spawnFlask = useCallback(() => {
+    if (gameAreaWidth > 0) {
+      const newFlaskSpeed = INITIAL_FLASK_SPEED + (score * FLASK_ACCELERATION);
+      setFlask({
+        id: Date.now(),
+        x: Math.random() * (gameAreaWidth - FLASK_WIDTH),
+        y: -FLASK_HEIGHT,
+        speed: newFlaskSpeed,
+      });
+    }
+  }, [gameAreaWidth, score]);
+  
   const resetGame = useCallback(() => {
     setCharacterX(gameAreaWidth / 2 - CHARACTER_WIDTH / 2);
-    setFlasks([]);
+    setFlask(null);
     setScore(0);
     setMisses(0);
     onScoreUpdate(0);
     onMiss(0);
-  }, [gameAreaWidth, onScoreUpdate, onMiss]);
+    setVelocityX(0);
+    if(isPlaying) {
+      spawnFlask();
+    }
+  }, [gameAreaWidth, onScoreUpdate, onMiss, isPlaying, spawnFlask]);
+
 
   // Game Loop
   useEffect(() => {
@@ -59,49 +82,62 @@ export const useGameLogic = ({
         return;
       }
 
-      setFlasks(prevFlasks => {
-        const newFlasks = prevFlasks.map(flask => ({
-          ...flask,
-          y: flask.y + flask.speed,
-        }));
+      // Update character position
+      let currentVelocityX = velocityX;
+      if (keysRef.current['ArrowLeft']) {
+        currentVelocityX = Math.max(-MAX_SPEED, currentVelocityX - ACCELERATION);
+      } else if (keysRef.current['ArrowRight']) {
+        currentVelocityX = Math.min(MAX_SPEED, currentVelocityX + ACCELERATION);
+      } else {
+        currentVelocityX *= FRICTION;
+        if (Math.abs(currentVelocityX) < 0.1) {
+          currentVelocityX = 0;
+        }
+      }
+      
+      setVelocityX(currentVelocityX);
+      setCharacterX(prevX => {
+        const newX = prevX + currentVelocityX;
+        return Math.max(0, Math.min(gameAreaWidth - CHARACTER_WIDTH, newX));
+      });
 
-        const caughtFlasks: number[] = [];
+      // Update flask position and check for catch/miss
+      if (flask) {
+        const newFlaskY = flask.y + flask.speed;
         let newMisses = misses;
 
         const characterY = gameAreaHeight - 80;
 
-        for (const flask of newFlasks) {
-          // Collision detection
-          if (
-            flask.y + FLASK_HEIGHT >= characterY &&
-            flask.x < characterX + CHARACTER_WIDTH &&
-            flask.x + FLASK_WIDTH > characterX
-          ) {
-            caughtFlasks.push(flask.id);
-            setScore(s => {
-              const newScore = s + 1;
-              onScoreUpdate(newScore);
-              return newScore;
-            });
-          }
-        }
-        
-        const remainingFlasks = newFlasks.filter(flask => {
-            if (flask.y > gameAreaHeight) {
-                newMisses++;
-                onMiss(newMisses);
-                return false;
-            }
-            return !caughtFlasks.includes(flask.id);
-        });
-
-        if (newMisses >= maxMisses) {
+        // Collision detection
+        if (
+          newFlaskY + FLASK_HEIGHT >= characterY &&
+          flask.y < characterY + FLASK_HEIGHT && // prev position check
+          flask.x < characterX + CHARACTER_WIDTH &&
+          flask.x + FLASK_WIDTH > characterX
+        ) {
+          setScore(s => {
+            const newScore = s + 1;
+            onScoreUpdate(newScore);
+            return newScore;
+          });
+          setFlask(null);
+          spawnFlask();
+        } else if (newFlaskY > gameAreaHeight) {
+          newMisses++;
+          onMiss(newMisses);
+          setFlask(null);
+          if (newMisses >= maxMisses) {
             onGameOver(score);
+          } else {
+            spawnFlask();
+          }
+        } else {
+          setFlask({ ...flask, y: newFlaskY });
         }
         setMisses(newMisses);
-
-        return remainingFlasks;
-      });
+      } else if (isPlaying) {
+          spawnFlask();
+      }
 
       gameLoopRef.current = requestAnimationFrame(gameLoop);
     };
@@ -109,55 +145,38 @@ export const useGameLogic = ({
     if (isPlaying) {
       gameLoopRef.current = requestAnimationFrame(gameLoop);
     } else {
-        if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
+      if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     }
 
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [isPlaying, characterX, gameAreaHeight, maxMisses, onGameOver, score, misses, onScoreUpdate, onMiss]);
-
-  // Flask Spawner
-  useEffect(() => {
-    if (isPlaying) {
-      flaskSpawnerRef.current = setInterval(() => {
-        setFlasks(prev => [
-          ...prev,
-          {
-            id: Date.now(),
-            x: Math.random() * (gameAreaWidth - FLASK_WIDTH),
-            y: -FLASK_HEIGHT,
-            speed: 2 + Math.random() * 3,
-          },
-        ]);
-      }, FLASK_SPAWN_RATE);
-    } else {
-      if (flaskSpawnerRef.current) clearInterval(flaskSpawnerRef.current);
-    }
-
-    return () => {
-      if (flaskSpawnerRef.current) clearInterval(flaskSpawnerRef.current);
-    };
-  }, [isPlaying, gameAreaWidth]);
+  }, [isPlaying, characterX, gameAreaHeight, maxMisses, onGameOver, score, misses, onScoreUpdate, onMiss, flask, velocityX, spawnFlask]);
 
   // Keyboard Controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-        if(!isPlaying) return;
-      if (e.key === 'ArrowLeft') {
-        setCharacterX(x => Math.max(0, x - CHARACTER_SPEED));
-      } else if (e.key === 'ArrowRight') {
-        setCharacterX(x => Math.min(gameAreaWidth - CHARACTER_WIDTH, x + CHARACTER_SPEED));
-      }
+        if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            keysRef.current[e.key] = true;
+        }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+        if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            keysRef.current[e.key] = false;
+        }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, gameAreaWidth]);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   useEffect(() => {
     resetGame();
   }, [resetGame]);
 
-  return { characterX, flasks };
+  return { characterX, flask };
 };
