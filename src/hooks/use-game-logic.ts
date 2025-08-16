@@ -4,9 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 const CHARACTER_WIDTH = 80;
 const INITIAL_SPEED = 0;
-const MAX_SPEED = 15; // Adjusted for better control
-const ACCELERATION = 0.6; // Increased for quicker response
-const FRICTION = 0.92; // Adjusted for a bit more slide
+const MAX_SPEED = 15;
+const ACCELERATION = 0.6;
 const FLASK_WIDTH = 40;
 const FLASK_HEIGHT = 40;
 const INITIAL_FLASK_SPEED = 2;
@@ -87,10 +86,7 @@ export const useGameLogic = ({
       } else if (keysRef.current['ArrowRight']) {
         currentVelocityX = Math.min(MAX_SPEED, currentVelocityX + ACCELERATION);
       } else {
-        currentVelocityX *= FRICTION;
-        if (Math.abs(currentVelocityX) < 0.1) {
-          currentVelocityX = 0;
-        }
+        currentVelocityX = 0; // Stop immediately if no key is pressed
       }
       velocityXRef.current = currentVelocityX;
       
@@ -173,7 +169,7 @@ export const useGameLogic = ({
 
   useEffect(() => {
     resetGame();
-  }, [isPlaying, gameAreaWidth]); // isPlaying toggle or resize should reset the game
+  }, [isPlaying, gameAreaWidth, resetGame]); // isPlaying toggle or resize should reset the game
 
   return { characterX, flask };
 };
