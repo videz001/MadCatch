@@ -15,9 +15,9 @@ import type { Nft } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
 const backgrounds = [
-  { id: "bg1", name: "Lab A", imageUrl: "https://placehold.co/800x600/292533/39FF14.png", hint: "science lab" },
-  { id: "bg2", name: "Neon Grid", imageUrl: "https://placehold.co/800x600/201528/FFFFFF.png", hint: "neon background" },
-  { id: "bg3", name: "Reaction", imageUrl: "https://placehold.co/800x600/152821/D65C5C.png", hint: "chemical reaction" },
+  { id: "bg1", name: "Lab", imageUrl: "https://i.imgur.com/X4RApaE.png", hint: "science lab" },
+  { id: "bg2", name: "Moon", imageUrl: "https://i.imgur.com/yZLFpGT.png", hint: "moon surface" },
+  { id: "bg3", name: "Mad Uni", imageUrl: "https://i.imgur.com/3fbQCYs.png", hint: "university building" },
 ];
 
 const defaultCharacter: Nft = { id: "default", name: "Default Scientist", imageUrl: "https://i.imgur.com/6nVF8r7.png" };
@@ -144,7 +144,7 @@ export default function Home() {
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="character">Character</TabsTrigger>
                 <TabsTrigger value="leaderboard">Leaders</TabsTrigger>
-                <TabsTrigger value="settings">Style</TabsTrigger>
+                <TabsTrigger value="background">Background</TabsTrigger>
               </TabsList>
               <TabsContent value="character">
                 <CharacterSelector
@@ -155,7 +155,7 @@ export default function Home() {
               <TabsContent value="leaderboard">
                 <Leaderboard />
               </TabsContent>
-              <TabsContent value="settings">
+              <TabsContent value="background">
                  <BackgroundSelector
                     backgrounds={backgrounds}
                     selectedId={selectedBackground.id}
