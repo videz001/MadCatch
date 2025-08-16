@@ -18,11 +18,7 @@ const mockLeaderboard: Player[] = [
     { rank: 10, address: "osmo1tgv2fju3mhy4gr5pwk6syqxfdce7y5kvers6j7", score: 250 },
 ];
 
-interface LeaderboardProps {
-    isAdmin: boolean;
-}
-
-export default function Leaderboard({ isAdmin }: LeaderboardProps) {
+export default function Leaderboard() {
   return (
     <Card>
       <CardHeader>
@@ -31,7 +27,7 @@ export default function Leaderboard({ isAdmin }: LeaderboardProps) {
             <span>Leaderboard</span>
         </CardTitle>
         <CardDescription>
-            {isAdmin ? "Admin View: Top scores with full addresses." : "Top scores across the lab."}
+            Top scores across the lab.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -48,7 +44,7 @@ export default function Leaderboard({ isAdmin }: LeaderboardProps) {
               <TableRow key={player.rank}>
                 <TableCell className="font-medium">{player.rank}</TableCell>
                 <TableCell className="font-mono">
-                    {isAdmin ? player.address : `${player.address.substring(0, 10)}...`}
+                    {`${player.address.substring(0, 10)}...`}
                 </TableCell>
                 <TableCell className="text-right font-bold text-primary">{player.score}</TableCell>
               </TableRow>
