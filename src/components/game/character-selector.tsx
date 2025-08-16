@@ -48,7 +48,7 @@ export default function CharacterSelector({
                   alt={character.name}
                   width={96}
                   height={96}
-                  unoptimized // Helps with external URLs that might not be in next.config.ts
+                  unoptimized
                   data-ai-hint={character.hint}
                   className="rounded-full bg-muted object-cover aspect-square w-24 h-24"
                 />

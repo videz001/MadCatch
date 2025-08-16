@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { FlaskConical } from 'lucide-react';
 import { useGameLogic } from '@/hooks/use-game-logic';
+import Image from 'next/image';
 
 interface GameScreenProps {
   characterImage: string;
@@ -67,12 +68,12 @@ export default function GameScreen({
               height: '80px',
             }}
           >
-            {/* Using a standard img tag for debugging */}
-            <img
+            <Image
               src={characterImage}
               alt="Game Character"
               width={80}
               height={80}
+              unoptimized
               className="object-contain w-full h-full"
             />
           </div>
