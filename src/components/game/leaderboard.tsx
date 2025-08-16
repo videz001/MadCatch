@@ -10,6 +10,11 @@ interface LeaderboardProps {
 }
 
 export default function Leaderboard({ players }: LeaderboardProps) {
+  const truncateAddress = (address: string) => {
+    if (address.length <= 10) return address;
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -36,7 +41,7 @@ export default function Leaderboard({ players }: LeaderboardProps) {
                     <TableRow key={player.rank}>
                         <TableCell className="font-medium">{player.rank}</TableCell>
                         <TableCell className="font-mono">
-                            {`${player.address.substring(0, 10)}...`}
+                            {truncateAddress(player.address)}
                         </TableCell>
                         <TableCell className="text-right font-bold text-primary">{player.score}</TableCell>
                     </TableRow>
