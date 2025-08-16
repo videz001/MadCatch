@@ -14,9 +14,6 @@ import GameScreen from "@/components/game/game-screen";
 import type { Nft } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
-const DEFAULT_CHARACTER = "/images/default-character.png";
-const DEFAULT_BACKGROUND = "/images/bg1.png";
-
 const backgrounds = [
   { id: "bg1", name: "Lab A", imageUrl: "https://placehold.co/800x600/292533/39FF14.png", hint: "science lab" },
   { id: "bg2", name: "Neon Grid", imageUrl: "https://placehold.co/800x600/201528/FFFFFF.png", hint: "neon background" },
@@ -32,16 +29,8 @@ const staticNfts: Nft[] = [
 export default function Home() {
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
   const [nfts, setNfts] = React.useState<Nft[]>([]);
-  const [isNftsLoading, setIsNftsLoading] = React.useState(false);
   
-  const defaultCharacter = React.useMemo(() => ({
-    id: "default",
-    name: "Default Scientist",
-    imageUrl: `https://placehold.co/150x150/292533/39FF14.png?t=${Date.now()}`,
-    hint: "scientist cartoon"
-  }), []);
-
-  const [selectedCharacter, setSelectedCharacter] = React.useState<Nft>(defaultCharacter);
+  const [selectedCharacter, setSelectedCharacter] = React.useState<Nft>(staticNfts[0]);
   const [selectedBackground, setSelectedBackground] = React.useState(backgrounds[0]);
   
   const [gameKey, setGameKey] = React.useState(Date.now());
@@ -55,12 +44,7 @@ export default function Home() {
   const handleConnect = (address: string) => {
     setWalletAddress(address);
     toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...` });
-    
-    setIsNftsLoading(true);
-    setTimeout(() => {
-        setNfts(staticNfts);
-        setIsNftsLoading(false);
-    }, 500);
+    setNfts(staticNfts);
   };
 
   const handleCharacterSelect = (character: Nft) => {
@@ -161,10 +145,8 @@ export default function Home() {
               <TabsContent value="character">
                 <CharacterSelector
                   nfts={nfts}
-                  defaultCharacter={defaultCharacter}
                   selectedId={selectedCharacter.id}
                   onSelect={handleCharacterSelect}
-                  isLoading={isNftsLoading}
                   walletConnected={!!walletAddress}
                 />
               </TabsContent>
