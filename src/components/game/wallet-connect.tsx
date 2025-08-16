@@ -17,6 +17,15 @@ export default function WalletConnect({ onConnect, address }: WalletConnectProps
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const generateFakeAddress = () => {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'osmo1';
+    for (let i = 0; i < 38; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
   const handleConnect = async () => {
     setIsLoading(true);
     setError(null);
@@ -31,7 +40,7 @@ export default function WalletConnect({ onConnect, address }: WalletConnectProps
       
       // Simulating a successful connection
       await new Promise(resolve => setTimeout(resolve, 1000));
-      const fakeAddress = "osmo1p69a2x2nytgxw7fxp4y0j8f8pjd9rldsfj0a5c";
+      const fakeAddress = generateFakeAddress();
       onConnect(fakeAddress);
 
     } catch (err) {
