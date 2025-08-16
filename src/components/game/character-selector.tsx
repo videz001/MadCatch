@@ -2,22 +2,16 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { UserCheck, Wand2, Beaker, FlaskConical, TestTube, TestTube2 } from 'lucide-react';
+import { UserCheck, Wand2 } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { Nft } from "@/lib/types";
+import Image from 'next/image';
 
 interface CharacterSelectorProps {
   onSelectById: (id: string) => void;
   selectedCharacter: Nft;
 }
-
-const iconMap: { [key: string]: React.ElementType } = {
-    Beaker,
-    FlaskConical,
-    TestTube,
-    TestTube2,
-};
 
 export default function CharacterSelector({
   onSelectById,
@@ -27,10 +21,10 @@ export default function CharacterSelector({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSelectById(nftId);
+    if (nftId) {
+      onSelectById(nftId);
+    }
   };
-
-  const IconComponent = iconMap[selectedCharacter.imageUrl] || Beaker;
 
   return (
     <Card>
@@ -39,7 +33,7 @@ export default function CharacterSelector({
           <UserCheck className="w-6 h-6 text-primary" />
           <span>Select Character</span>
         </CardTitle>
-        <CardDescription>Enter an ID to select a character icon.</CardDescription>
+        <CardDescription>Enter an NFT number to use as your character.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -47,8 +41,8 @@ export default function CharacterSelector({
               <Input
                 type="text"
                 value={nftId}
-                onChange={(e) => setNftId(e.target.value)}
-                placeholder="Enter any number (e.g., 123)"
+                onChange={(e) => setNftId(e.target.value.replace(/[^0-9]/g, ''))}
+                placeholder="Enter NFT number (e.g., 123)"
                 className="w-full"
               />
               <Button type="submit" size="icon">
@@ -57,8 +51,17 @@ export default function CharacterSelector({
             </form>
             <div className="mt-4 flex flex-col items-center justify-center gap-2 p-4 border rounded-lg bg-muted">
                 <h3 className="font-semibold">Current Character</h3>
-                <div className="rounded-full bg-muted-foreground/20 object-cover aspect-square w-24 h-24 flex items-center justify-center">
-                    <IconComponent className="w-16 h-16 text-primary" />
+                <div className="relative rounded-full bg-muted-foreground/20 object-cover aspect-square w-24 h-24 flex items-center justify-center overflow-hidden">
+                    {selectedCharacter.imageUrl && (
+                         <Image 
+                            src={selectedCharacter.imageUrl}
+                            alt={`Scientist #${selectedCharacter.id}`}
+                            width={96}
+                            height={96}
+                            className="object-cover"
+                            unoptimized
+                         />
+                    )}
                 </div>
                 <p className="text-sm text-center font-medium truncate w-full">{selectedCharacter.name}</p>
             </div>
