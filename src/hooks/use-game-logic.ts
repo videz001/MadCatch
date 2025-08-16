@@ -4,8 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 const CHARACTER_WIDTH = 80;
 const INITIAL_SPEED = 0;
-const MAX_SPEED = 20;
-const ACCELERATION = 1.2;
+const MAX_SPEED = 30;
+const ACCELERATION = 2;
 const FLASK_WIDTH = 40;
 const FLASK_HEIGHT = 40;
 const INITIAL_FLASK_SPEED = 4;
@@ -100,13 +100,14 @@ export const useGameLogic = ({
         if (currentFlask) {
           const newFlaskY = currentFlask.y + currentFlask.speed;
           const characterY = gameAreaHeight - 80;
+          const currentCharacterX = characterX; // Use a stable value within this render frame
 
           // Collision detection
           if (
             newFlaskY + FLASK_HEIGHT >= characterY &&
             currentFlask.y < characterY + FLASK_HEIGHT &&
-            currentFlask.x < characterX + CHARACTER_WIDTH &&
-            currentFlask.x + FLASK_WIDTH > characterX
+            currentFlask.x < currentCharacterX + CHARACTER_WIDTH &&
+            currentFlask.x + FLASK_WIDTH > currentCharacterX
           ) {
             scoreRef.current += 1;
             onScoreUpdate(scoreRef.current);
