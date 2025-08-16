@@ -24,7 +24,6 @@ const defaultCharacter: Nft = { id: "default", name: "Default Scientist", imageU
 
 export default function Home() {
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
-  const [nfts, setNfts] = React.useState<Nft[]>([]);
   
   const [selectedCharacter, setSelectedCharacter] = React.useState<Nft>(defaultCharacter);
   const [selectedBackground, setSelectedBackground] = React.useState(backgrounds[0]);
@@ -40,24 +39,21 @@ export default function Home() {
   const handleConnect = (address: string) => {
     setWalletAddress(address);
     toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...` });
-    
-    // Simulate fetching NFTs for the connected wallet
-    const fetchedNfts: Nft[] = [
-      { id: "1", name: "Scientist #1", imageUrl: `https://rarity.madscientists.io/images/1.png?t=${Date.now()}`, hint: "scientist cartoon" },
-      { id: "2", name: "Scientist #2", imageUrl: `https://rarity.madscientists.io/images/2.png?t=${Date.now()}`, hint: "scientist cartoon" },
-      { id: "3", name: "Scientist #3", imageUrl: `https://rarity.madscientists.io/images/3.png?t=${Date.now()}`, hint: "scientist cartoon" },
-    ];
-    setNfts(fetchedNfts);
-    
-    // Set the first fetched NFT as the selected one
-    if (fetchedNfts.length > 0) {
-      setSelectedCharacter(fetchedNfts[0]);
-    }
   };
 
-  const handleCharacterSelect = (character: Nft) => {
-    setSelectedCharacter(character);
-    toast({ title: "Character Changed", description: `Now playing as ${character.name}` });
+  const handleCharacterSelect = (nftId: string) => {
+    if (!nftId || isNaN(parseInt(nftId))) {
+      toast({ title: "Invalid ID", description: "Please enter a valid NFT number.", variant: "destructive" });
+      return;
+    }
+    const newCharacter: Nft = {
+        id: nftId,
+        name: `Scientist #${nftId}`,
+        imageUrl: `https://rarity.madscientists.io/images/${nftId}.png?t=${Date.now()}`,
+        hint: "scientist cartoon"
+    };
+    setSelectedCharacter(newCharacter);
+    toast({ title: "Character Changed", description: `Now playing as Scientist #${nftId}` });
   };
 
   const handleBackgroundSelect = (background: { id: string, name: string, imageUrl: string, hint: string }) => {
@@ -79,8 +75,6 @@ export default function Home() {
       variant: "destructive",
     });
   };
-  
-  const charactersToShow = walletAddress ? nfts : [defaultCharacter];
 
   return (
     <main className="min-h-screen bg-background text-foreground font-body">
@@ -154,10 +148,8 @@ export default function Home() {
               </TabsList>
               <TabsContent value="character">
                 <CharacterSelector
-                  nfts={charactersToShow}
-                  selectedId={selectedCharacter.id}
-                  onSelect={handleCharacterSelect}
-                  walletConnected={!!walletAddress}
+                  onSelectById={handleCharacterSelect}
+                  selectedCharacter={selectedCharacter}
                 />
               </TabsContent>
               <TabsContent value="leaderboard">
