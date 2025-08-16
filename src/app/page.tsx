@@ -11,7 +11,7 @@ import CharacterSelector from "@/components/game/character-selector";
 import Leaderboard from "@/components/game/leaderboard";
 import BackgroundSelector from "@/components/game/background-selector";
 import GameScreen from "@/components/game/game-screen";
-import type { Nft } from "@/lib/types";
+import type { Nft, Player } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
 const backgrounds = [
@@ -33,6 +33,7 @@ export default function Home() {
   const [score, setScore] = React.useState(0);
   const [misses, setMisses] = React.useState(0);
   const { toast } = useToast();
+  const [leaderboardData, setLeaderboardData] = React.useState<Player[]>([]);
 
   const MAX_MISSES = 5;
 
@@ -61,6 +62,14 @@ export default function Home() {
   };
   
   const startGame = () => {
+    if (!walletAddress) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to start playing.",
+        variant: "destructive",
+      });
+      return;
+    }
     setScore(0);
     setMisses(0);
     setGameKey(Date.now());
@@ -74,6 +83,23 @@ export default function Home() {
       description: `Your final score is ${finalScore}.`,
       variant: "destructive",
     });
+
+    if (walletAddress) {
+        setLeaderboardData(prevLeaderboard => {
+            const existingPlayerIndex = prevLeaderboard.findIndex(p => p.address === walletAddress);
+            let newLeaderboard = [...prevLeaderboard];
+
+            if (existingPlayerIndex !== -1) {
+                if (finalScore > newLeaderboard[existingPlayerIndex].score) {
+                    newLeaderboard[existingPlayerIndex] = { ...newLeaderboard[existingPlayerIndex], score: finalScore };
+                }
+            } else {
+                newLeaderboard.push({ address: walletAddress, score: finalScore, rank: 0 });
+            }
+
+            return newLeaderboard.sort((a, b) => b.score - a.score).map((player, index) => ({ ...player, rank: index + 1 }));
+        });
+    }
   };
 
   return (
@@ -153,7 +179,7 @@ export default function Home() {
                 />
               </TabsContent>
               <TabsContent value="leaderboard">
-                <Leaderboard />
+                <Leaderboard players={leaderboardData} />
               </TabsContent>
               <TabsContent value="background">
                  <BackgroundSelector
