@@ -28,7 +28,7 @@ const staticNfts: Nft[] = [
 
 export default function Home() {
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
-  const [nfts, setNfts] = React.useState<Nft[]>([]);
+  const [nfts, setNfts] = React.useState<Nft[]>(staticNfts);
   
   const [selectedCharacter, setSelectedCharacter] = React.useState<Nft>(staticNfts[0]);
   const [selectedBackground, setSelectedBackground] = React.useState(backgrounds[0]);
@@ -44,7 +44,7 @@ export default function Home() {
   const handleConnect = (address: string) => {
     setWalletAddress(address);
     toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...` });
-    setNfts(staticNfts);
+    // NFTs are already loaded by default
   };
 
   const handleCharacterSelect = (character: Nft) => {

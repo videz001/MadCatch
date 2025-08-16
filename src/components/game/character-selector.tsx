@@ -34,7 +34,7 @@ export default function CharacterSelector({
       <CardContent>
         <ScrollArea className="h-64">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pr-4">
-            {walletConnected && nfts.map((character) => (
+            {nfts.map((character) => (
               <div
                 key={character.id}
                 onClick={() => onSelect(character)}
@@ -61,6 +61,17 @@ export default function CharacterSelector({
                         <AlertTitle>No Mad Scientists Found</AlertTitle>
                         <AlertDescription>
                            We couldn't find any Mad Scientist NFTs in your wallet.
+                        </AlertDescription>
+                    </Alert>
+                </div>
+            )}
+            {!walletConnected && nfts.length === 0 && (
+                <div className="col-span-full">
+                    <Alert>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Connect Wallet</AlertTitle>
+                        <AlertDescription>
+                           Connect your wallet to load your NFTs.
                         </AlertDescription>
                     </Alert>
                 </div>
