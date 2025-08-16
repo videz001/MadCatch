@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React from 'react';
 import Image from "next/image";
 import { Beaker, Heart, Trophy, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,30 +24,30 @@ const backgrounds = [
 ];
 
 const staticNfts: Nft[] = [
-    { id: "1", name: "Scientist #1", imageUrl: "https://rarity.madscientists.io/images/1.png", hint: "scientist cartoon" },
-    { id: "2", name: "Scientist #2", imageUrl: "https://rarity.madscientists.io/images/2.png", hint: "scientist cartoon" },
-    { id: "3", name: "Scientist #3", imageUrl: "https://rarity.madscientists.io/images/3.png", hint: "scientist cartoon" },
+    { id: "1", name: "Scientist #1", imageUrl: `https://rarity.madscientists.io/images/1.png?t=${Date.now()}`, hint: "scientist cartoon" },
+    { id: "2", name: "Scientist #2", imageUrl: `https://rarity.madscientists.io/images/2.png?t=${Date.now()}`, hint: "scientist cartoon" },
+    { id: "3", name: "Scientist #3", imageUrl: `https://rarity.madscientists.io/images/3.png?t=${Date.now()}`, hint: "scientist cartoon" },
 ];
 
 export default function Home() {
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [nfts, setNfts] = useState<Nft[]>([]);
-  const [isNftsLoading, setIsNftsLoading] = useState(false);
+  const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
+  const [nfts, setNfts] = React.useState<Nft[]>([]);
+  const [isNftsLoading, setIsNftsLoading] = React.useState(false);
   
-  const defaultCharacter = useMemo(() => ({
+  const defaultCharacter = React.useMemo(() => ({
     id: "default",
     name: "Default Scientist",
-    imageUrl: "https://placehold.co/150x150/292533/39FF14.png",
+    imageUrl: `https://placehold.co/150x150/292533/39FF14.png?t=${Date.now()}`,
     hint: "scientist cartoon"
   }), []);
 
-  const [selectedCharacter, setSelectedCharacter] = useState<Nft>(defaultCharacter);
-  const [selectedBackground, setSelectedBackground] = useState(backgrounds[0]);
+  const [selectedCharacter, setSelectedCharacter] = React.useState<Nft>(defaultCharacter);
+  const [selectedBackground, setSelectedBackground] = React.useState(backgrounds[0]);
   
-  const [gameKey, setGameKey] = useState(Date.now());
-  const [gameState, setGameState] = useState<"ready" | "playing" | "over">("ready");
-  const [score, setScore] = useState(0);
-  const [misses, setMisses] = useState(0);
+  const [gameKey, setGameKey] = React.useState(Date.now());
+  const [gameState, setGameState] = React.useState<"ready" | "playing" | "over">("ready");
+  const [score, setScore] = React.useState(0);
+  const [misses, setMisses] = React.useState(0);
   const { toast } = useToast();
 
   const MAX_MISSES = 5;
@@ -56,7 +56,6 @@ export default function Home() {
     setWalletAddress(address);
     toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...` });
     
-    // Use static list of NFTs
     setIsNftsLoading(true);
     setTimeout(() => {
         setNfts(staticNfts);
