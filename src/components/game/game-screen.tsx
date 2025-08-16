@@ -69,13 +69,12 @@ export default function GameScreen({
               height: '80px',
             }}
           >
-            <Image
+            <img
               src={characterImage}
               alt="Game Character"
               width={80}
               height={80}
-              priority
-              className="object-contain"
+              className="object-contain w-full h-full"
             />
           </div>
 
