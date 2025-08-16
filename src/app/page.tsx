@@ -20,17 +20,13 @@ const backgrounds = [
   { id: "bg3", name: "Reaction", imageUrl: "https://placehold.co/800x600/152821/D65C5C.png", hint: "chemical reaction" },
 ];
 
-const staticNfts: Nft[] = [
-    { id: "1", name: "Scientist #1", imageUrl: `https://rarity.madscientists.io/images/1.png?t=${Date.now()}`, hint: "scientist cartoon" },
-    { id: "2", name: "Scientist #2", imageUrl: `https://rarity.madscientists.io/images/2.png?t=${Date.now()}`, hint: "scientist cartoon" },
-    { id: "3", name: "Scientist #3", imageUrl: `https://rarity.madscientists.io/images/3.png?t=${Date.now()}`, hint: "scientist cartoon" },
-];
+const defaultCharacter: Nft = { id: "default", name: "Default Scientist", imageUrl: "https://placehold.co/96x96/663399/FFFFFF.png", hint: "scientist cartoon" };
 
 export default function Home() {
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
-  const [nfts, setNfts] = React.useState<Nft[]>(staticNfts);
+  const [nfts, setNfts] = React.useState<Nft[]>([]);
   
-  const [selectedCharacter, setSelectedCharacter] = React.useState<Nft>(staticNfts[0]);
+  const [selectedCharacter, setSelectedCharacter] = React.useState<Nft>(defaultCharacter);
   const [selectedBackground, setSelectedBackground] = React.useState(backgrounds[0]);
   
   const [gameKey, setGameKey] = React.useState(Date.now());
@@ -44,7 +40,19 @@ export default function Home() {
   const handleConnect = (address: string) => {
     setWalletAddress(address);
     toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...` });
-    // NFTs are already loaded by default
+    
+    // Simulate fetching NFTs for the connected wallet
+    const fetchedNfts: Nft[] = [
+      { id: "1", name: "Scientist #1", imageUrl: `https://rarity.madscientists.io/images/1.png?t=${Date.now()}`, hint: "scientist cartoon" },
+      { id: "2", name: "Scientist #2", imageUrl: `https://rarity.madscientists.io/images/2.png?t=${Date.now()}`, hint: "scientist cartoon" },
+      { id: "3", name: "Scientist #3", imageUrl: `https://rarity.madscientists.io/images/3.png?t=${Date.now()}`, hint: "scientist cartoon" },
+    ];
+    setNfts(fetchedNfts);
+    
+    // Set the first fetched NFT as the selected one
+    if (fetchedNfts.length > 0) {
+      setSelectedCharacter(fetchedNfts[0]);
+    }
   };
 
   const handleCharacterSelect = (character: Nft) => {
@@ -71,6 +79,8 @@ export default function Home() {
       variant: "destructive",
     });
   };
+  
+  const charactersToShow = walletAddress ? nfts : [defaultCharacter];
 
   return (
     <main className="min-h-screen bg-background text-foreground font-body">
@@ -144,7 +154,7 @@ export default function Home() {
               </TabsList>
               <TabsContent value="character">
                 <CharacterSelector
-                  nfts={nfts}
+                  nfts={charactersToShow}
                   selectedId={selectedCharacter.id}
                   onSelect={handleCharacterSelect}
                   walletConnected={!!walletAddress}

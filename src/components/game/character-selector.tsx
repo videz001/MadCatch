@@ -48,6 +48,7 @@ export default function CharacterSelector({
                   alt={character.name}
                   width={96}
                   height={96}
+                  unoptimized // Helps with external URLs that might not be in next.config.ts
                   data-ai-hint={character.hint}
                   className="rounded-full bg-muted object-cover aspect-square w-24 h-24"
                 />
@@ -60,12 +61,12 @@ export default function CharacterSelector({
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle>No Mad Scientists Found</AlertTitle>
                         <AlertDescription>
-                           We couldn't find any Mad Scientist NFTs in your wallet.
+                           We couldn't find any Mad Scientist NFTs in your wallet. Default characters are shown.
                         </AlertDescription>
                     </Alert>
                 </div>
             )}
-            {!walletConnected && nfts.length === 0 && (
+            {!walletConnected && (
                 <div className="col-span-full">
                     <Alert>
                         <AlertCircle className="h-4 w-4" />
