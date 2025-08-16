@@ -53,10 +53,11 @@ export default function Home() {
     // Fetch NFTs
     setIsNftsLoading(true);
     setTimeout(() => {
+        const cacheBuster = `?t=${new Date().getTime()}`;
         const fetchedNfts: Nft[] = [
-            { id: "1", name: "Scientist #1", imageUrl: "https://rarity.madscientists.io/images/1.png", hint: "scientist cartoon" },
-            { id: "2", name: "Scientist #2", imageUrl: "https://rarity.madscientists.io/images/2.png", hint: "scientist cartoon" },
-            { id: "3", name: "Scientist #3", imageUrl: "https://rarity.madscientists.io/images/3.png", hint: "scientist cartoon" },
+            { id: "1", name: "Scientist #1", imageUrl: `https://rarity.madscientists.io/images/1.png${cacheBuster}`, hint: "scientist cartoon" },
+            { id: "2", name: "Scientist #2", imageUrl: `https://rarity.madscientists.io/images/2.png${cacheBuster}`, hint: "scientist cartoon" },
+            { id: "3", name: "Scientist #3", imageUrl: `https://rarity.madscientists.io/images/3.png${cacheBuster}`, hint: "scientist cartoon" },
         ];
         setNfts(fetchedNfts);
         setIsNftsLoading(false);
