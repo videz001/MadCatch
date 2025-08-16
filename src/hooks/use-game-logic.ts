@@ -4,12 +4,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 const CHARACTER_WIDTH = 80;
 const INITIAL_SPEED = 0;
-const MAX_SPEED = 15;
-const ACCELERATION = 0.6;
+const MAX_SPEED = 20;
+const ACCELERATION = 1.2;
 const FLASK_WIDTH = 40;
 const FLASK_HEIGHT = 40;
-const INITIAL_FLASK_SPEED = 3;
-const FLASK_ACCELERATION = 0.1;
+const INITIAL_FLASK_SPEED = 4;
+const FLASK_ACCELERATION = 0.2;
 
 interface Flask {
   id: number;
@@ -141,7 +141,7 @@ export const useGameLogic = ({
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [isPlaying, gameAreaWidth, gameAreaHeight, maxMisses, onGameOver, onScoreUpdate, onMiss, spawnFlask, characterX, flask]);
+  }, [isPlaying, gameAreaWidth, gameAreaHeight, maxMisses, onGameOver, onScoreUpdate, onMiss, spawnFlask, characterX]);
 
 
   // Keyboard Controls
