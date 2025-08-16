@@ -21,9 +21,11 @@ const backgrounds = [
 ];
 
 const defaultCharacter: Nft = { id: "default", name: "Default Scientist", imageUrl: "https://i.imgur.com/6nVF8r7.png" };
+const ADMIN_WALLET = "osmo1h7agf7900edhvvuvpg4yj4cv26r0cavsapyhfw";
 
 export default function Home() {
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = React.useState(false);
   
   const [selectedCharacter, setSelectedCharacter] = React.useState<Nft>(defaultCharacter);
   const [selectedBackground, setSelectedBackground] = React.useState(backgrounds[0]);
@@ -38,7 +40,13 @@ export default function Home() {
 
   const handleConnect = (address: string) => {
     setWalletAddress(address);
-    toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...` });
+    if (address.toLowerCase() === ADMIN_WALLET.toLowerCase()) {
+      setIsAdmin(true);
+      toast({ title: "Admin Wallet Connected", description: "Welcome, administrator." });
+    } else {
+      setIsAdmin(false);
+      toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...` });
+    }
   };
 
   const handleCharacterSelect = (nftId: string) => {
@@ -153,7 +161,7 @@ export default function Home() {
                 />
               </TabsContent>
               <TabsContent value="leaderboard">
-                <Leaderboard />
+                <Leaderboard isAdmin={isAdmin} />
               </TabsContent>
               <TabsContent value="background">
                  <BackgroundSelector
