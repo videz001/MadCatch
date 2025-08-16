@@ -4,9 +4,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 const CHARACTER_WIDTH = 80;
 const INITIAL_SPEED = 0;
-const MAX_SPEED = 20;
-const ACCELERATION = 0.5;
-const FRICTION = 0.95;
+const MAX_SPEED = 15; // Adjusted for better control
+const ACCELERATION = 0.6; // Increased for quicker response
+const FRICTION = 0.92; // Adjusted for a bit more slide
 const FLASK_WIDTH = 40;
 const FLASK_HEIGHT = 40;
 const INITIAL_FLASK_SPEED = 2;
@@ -40,17 +40,16 @@ export const useGameLogic = ({
 }: UseGameLogicProps) => {
   const [characterX, setCharacterX] = useState(gameAreaWidth / 2 - CHARACTER_WIDTH / 2);
   const [flask, setFlask] = useState<Flask | null>(null);
-  const [score, setScore] = useState(0);
-  const [misses, setMisses] = useState(0);
   
-  const [velocityX, setVelocityX] = useState(INITIAL_SPEED);
+  const scoreRef = useRef(0);
+  const missesRef = useRef(0);
+  const velocityXRef = useRef(INITIAL_SPEED);
   const keysRef = useRef<{ [key: string]: boolean }>({});
-
   const gameLoopRef = useRef<number>();
 
   const spawnFlask = useCallback(() => {
-    if (gameAreaWidth > 0) {
-      const newFlaskSpeed = INITIAL_FLASK_SPEED + (score * FLASK_ACCELERATION);
+    if (gameAreaWidth > 0 && isPlaying) {
+      const newFlaskSpeed = INITIAL_FLASK_SPEED + (scoreRef.current * FLASK_ACCELERATION);
       setFlask({
         id: Date.now(),
         x: Math.random() * (gameAreaWidth - FLASK_WIDTH),
@@ -58,32 +57,31 @@ export const useGameLogic = ({
         speed: newFlaskSpeed,
       });
     }
-  }, [gameAreaWidth, score]);
+  }, [gameAreaWidth, isPlaying]);
   
   const resetGame = useCallback(() => {
     setCharacterX(gameAreaWidth / 2 - CHARACTER_WIDTH / 2);
     setFlask(null);
-    setScore(0);
-    setMisses(0);
+    scoreRef.current = 0;
+    missesRef.current = 0;
     onScoreUpdate(0);
     onMiss(0);
-    setVelocityX(0);
-    if(isPlaying) {
+    velocityXRef.current = 0;
+    if (isPlaying) {
       spawnFlask();
     }
   }, [gameAreaWidth, onScoreUpdate, onMiss, isPlaying, spawnFlask]);
-
 
   // Game Loop
   useEffect(() => {
     const gameLoop = () => {
       if (!isPlaying) {
-        cancelAnimationFrame(gameLoopRef.current!);
+        if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
         return;
       }
 
-      // Update character position
-      let currentVelocityX = velocityX;
+      // Update character position based on keyboard input
+      let currentVelocityX = velocityXRef.current;
       if (keysRef.current['ArrowLeft']) {
         currentVelocityX = Math.max(-MAX_SPEED, currentVelocityX - ACCELERATION);
       } else if (keysRef.current['ArrowRight']) {
@@ -94,55 +92,51 @@ export const useGameLogic = ({
           currentVelocityX = 0;
         }
       }
+      velocityXRef.current = currentVelocityX;
       
-      setVelocityX(currentVelocityX);
       setCharacterX(prevX => {
         const newX = prevX + currentVelocityX;
         return Math.max(0, Math.min(gameAreaWidth - CHARACTER_WIDTH, newX));
       });
 
       // Update flask position and check for catch/miss
-      if (flask) {
-        const newFlaskY = flask.y + flask.speed;
-        let newMisses = misses;
+      setFlask(currentFlask => {
+        if (currentFlask) {
+          const newFlaskY = currentFlask.y + currentFlask.speed;
+          const characterY = gameAreaHeight - 80;
 
-        const characterY = gameAreaHeight - 80;
-
-        // Collision detection
-        if (
-          newFlaskY + FLASK_HEIGHT >= characterY &&
-          flask.y < characterY + FLASK_HEIGHT && // prev position check
-          flask.x < characterX + CHARACTER_WIDTH &&
-          flask.x + FLASK_WIDTH > characterX
-        ) {
-          setScore(s => {
-            const newScore = s + 1;
-            onScoreUpdate(newScore);
-            return newScore;
-          });
-          setFlask(null);
-          spawnFlask();
-        } else if (newFlaskY > gameAreaHeight) {
-          newMisses++;
-          onMiss(newMisses);
-          setFlask(null);
-          if (newMisses >= maxMisses) {
-            onGameOver(score);
-          } else {
+          // Collision detection
+          if (
+            newFlaskY + FLASK_HEIGHT >= characterY &&
+            currentFlask.y < characterY + FLASK_HEIGHT &&
+            currentFlask.x < characterX + CHARACTER_WIDTH &&
+            currentFlask.x + FLASK_WIDTH > characterX
+          ) {
+            scoreRef.current += 1;
+            onScoreUpdate(scoreRef.current);
             spawnFlask();
+            return null; // Remove caught flask
+          } else if (newFlaskY > gameAreaHeight) {
+            missesRef.current += 1;
+            onMiss(missesRef.current);
+            if (missesRef.current >= maxMisses) {
+              onGameOver(scoreRef.current);
+            } else {
+              spawnFlask();
+            }
+            return null; // Remove missed flask
+          } else {
+            return { ...currentFlask, y: newFlaskY }; // Update flask position
           }
-        } else {
-          setFlask({ ...flask, y: newFlaskY });
         }
-        setMisses(newMisses);
-      } else if (isPlaying) {
-          spawnFlask();
-      }
+        return currentFlask;
+      });
 
       gameLoopRef.current = requestAnimationFrame(gameLoop);
     };
 
     if (isPlaying) {
+      if (!flask) spawnFlask(); // Initial flask spawn
       gameLoopRef.current = requestAnimationFrame(gameLoop);
     } else {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
@@ -151,32 +145,35 @@ export const useGameLogic = ({
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [isPlaying, characterX, gameAreaHeight, maxMisses, onGameOver, score, misses, onScoreUpdate, onMiss, flask, velocityX, spawnFlask]);
+  }, [isPlaying, gameAreaWidth, gameAreaHeight, maxMisses, onGameOver, onScoreUpdate, onMiss, spawnFlask, characterX, flask]);
+
 
   // Keyboard Controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-        if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-            keysRef.current[e.key] = true;
-        }
+      if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        keysRef.current[e.key] = true;
+      }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-        if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-            keysRef.current[e.key] = false;
-        }
+      if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        keysRef.current[e.key] = false;
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     return () => {
-        window.removeEventListener('keydown', handleKeyDown);
-        window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
 
   useEffect(() => {
     resetGame();
-  }, [resetGame]);
+  }, [isPlaying, gameAreaWidth]); // isPlaying toggle or resize should reset the game
 
   return { characterX, flask };
 };
