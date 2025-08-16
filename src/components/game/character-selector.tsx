@@ -7,6 +7,7 @@ import { type Nft } from "@/lib/types";
 import { Skeleton } from '../ui/skeleton';
 import { AlertCircle, UserCheck } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import Image from "next/image";
 
 interface CharacterSelectorProps {
   nfts: Nft[];
@@ -55,7 +56,7 @@ export default function CharacterSelector({
                   selectedId === character.id ? 'border-primary bg-primary/10' : 'hover:bg-muted'
                 )}
               >
-                <img
+                <Image
                   src={character.imageUrl}
                   alt={character.name}
                   width={96}
