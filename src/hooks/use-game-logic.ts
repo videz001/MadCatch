@@ -8,8 +8,8 @@ const MAX_SPEED = 15;
 const ACCELERATION = 0.6;
 const FLASK_WIDTH = 40;
 const FLASK_HEIGHT = 40;
-const INITIAL_FLASK_SPEED = 2;
-const FLASK_ACCELERATION = 0.05;
+const INITIAL_FLASK_SPEED = 3;
+const FLASK_ACCELERATION = 0.1;
 
 interface Flask {
   id: number;
