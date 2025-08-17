@@ -104,13 +104,14 @@ export default function Home() {
         setLeaderboardData(prevLeaderboard => {
             const existingPlayerIndex = prevLeaderboard.findIndex(p => p.address === walletAddress);
             let newLeaderboard = [...prevLeaderboard];
+            const playerImage = selectedCharacter.imageUrl;
 
             if (existingPlayerIndex !== -1) {
                 if (finalScore > newLeaderboard[existingPlayerIndex].score) {
-                    newLeaderboard[existingPlayerIndex] = { ...newLeaderboard[existingPlayerIndex], score: finalScore };
+                    newLeaderboard[existingPlayerIndex] = { ...newLeaderboard[existingPlayerIndex], score: finalScore, characterImageUrl: playerImage };
                 }
             } else {
-                newLeaderboard.push({ address: walletAddress, score: finalScore, rank: 0 });
+                newLeaderboard.push({ address: walletAddress, score: finalScore, rank: 0, characterImageUrl: playerImage });
             }
 
             return newLeaderboard.sort((a, b) => b.score - a.score).map((player, index) => ({ ...player, rank: index + 1 }));

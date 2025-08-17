@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trophy } from "lucide-react";
@@ -40,8 +41,21 @@ export default function Leaderboard({ players }: LeaderboardProps) {
                     {players.map((player) => (
                     <TableRow key={player.rank}>
                         <TableCell className="font-medium">{player.rank}</TableCell>
-                        <TableCell className="font-mono">
-                            {truncateAddress(player.address)}
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {player.characterImageUrl && (
+                              <Image 
+                                src={player.characterImageUrl} 
+                                alt="Player character"
+                                width={24}
+                                height={24}
+                                className="rounded-full object-cover w-6 h-6"
+                                unoptimized
+                                crossOrigin="anonymous"
+                              />
+                            )}
+                            <span className="font-mono">{truncateAddress(player.address)}</span>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right font-bold text-primary">{player.score}</TableCell>
                     </TableRow>

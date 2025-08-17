@@ -9,4 +9,5 @@ export interface Player {
   rank: number;
   address: string;
   score: number;
+  characterImageUrl?: string;
 }
