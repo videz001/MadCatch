@@ -24,14 +24,11 @@ interface CharacterSelectorProps {
 }
 
 async function defaultResolveImageUrl(tokenId: number): Promise<string> {
-  // Ask your server to resolve the image (same behavior as nft-viewer.html)
-  const res = await fetch(`/mad-nft.php?id=${tokenId}`, { method: "GET" });
+  const res = await fetch(`/api/nft?id=${tokenId}`);
   if (!res.ok) throw new Error("Resolver endpoint not reachable.");
-  const data = await res.json().catch(() => null);
-  if (!data || typeof data.url !== "string" || !data.url) {
-    throw new Error("Resolver returned no image URL.");
-  }
-  return data.url; // e.g. https://rektgang.mypinata.cloud/ipfs/...&pinataGatewayToken=...
+  const data = await res.json();
+  if (!data?.url) throw new Error("Resolver returned no image URL.");
+  return data.url;
 }
 
 

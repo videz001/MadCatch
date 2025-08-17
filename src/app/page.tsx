@@ -49,7 +49,7 @@ export default function Home() {
     }
   
     try {
-      const res = await fetch(`/mad-nft.php?id=${nftId}`);
+      const res = await fetch(`/api/nft?id=${nftId}`);
       if (!res.ok) throw new Error("Failed to resolve NFT image.");
       const data = await res.json();
       const imageUrl: string = data?.url || "";
