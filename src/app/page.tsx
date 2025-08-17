@@ -101,21 +101,18 @@ export default function Home() {
     });
 
     if (walletAddress) {
-        setLeaderboardData(prevLeaderboard => {
-            const existingPlayerIndex = prevLeaderboard.findIndex(p => p.address === walletAddress);
-            let newLeaderboard = [...prevLeaderboard];
-            const playerImage = selectedCharacter.imageUrl;
-
-            if (existingPlayerIndex !== -1) {
-                if (finalScore > newLeaderboard[existingPlayerIndex].score) {
-                    newLeaderboard[existingPlayerIndex] = { ...newLeaderboard[existingPlayerIndex], score: finalScore, characterImageUrl: playerImage };
-                }
-            } else {
-                newLeaderboard.push({ address: walletAddress, score: finalScore, rank: 0, characterImageUrl: playerImage });
-            }
-
-            return newLeaderboard.sort((a, b) => b.score - a.score).map((player, index) => ({ ...player, rank: index + 1 }));
-        });
+      setLeaderboardData(prevLeaderboard => {
+        const existingPlayerIndex = prevLeaderboard.findIndex(p => p.address === walletAddress);
+        let newLeaderboard = [...prevLeaderboard];
+        if (existingPlayerIndex !== -1) {
+          if (finalScore > newLeaderboard[existingPlayerIndex].score) {
+            newLeaderboard[existingPlayerIndex] = { ...newLeaderboard[existingPlayerIndex], score: finalScore };
+          }
+        } else {
+          newLeaderboard.push({ address: walletAddress, score: finalScore, rank: 0 });
+        }
+        return newLeaderboard.sort((a, b) => b.score - a.score).map((player, index) => ({ ...player, rank: index + 1 }));
+      });
     }
   };
 
