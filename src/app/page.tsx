@@ -39,12 +39,11 @@ export default function Home() {
 
   const handleConnect = (address: string) => {
     setWalletAddress(address);
-    toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...` });
+    toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...${address.substring(address.length - 4)}` });
   };
 
   const handleCharacterSelect = (nftId: string) => {
-    if (!nftId || isNaN(parseInt(nftId))) {
-      toast({ title: "Invalid ID", description: "Please enter a valid NFT number.", variant: "destructive" });
+    if (!nftId) {
       setSelectedCharacter(defaultCharacter);
       return;
     }
