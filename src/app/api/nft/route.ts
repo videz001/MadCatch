@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Ensure this route is dynamic (no ISR caching)
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
