@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from "next/image";
-import { Beaker, Heart, Trophy, Wand2 } from "lucide-react";
+import { Heart, Trophy, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -124,7 +124,7 @@ export default function Home() {
       <div className="container mx-auto p-4">
         <header className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
-            <Beaker className="w-8 h-8 text-primary" />
+            <Image src="https://i.imgur.com/RZj65Do.png" alt="Mad Catch Logo" width={40} height={40} className="w-10 h-10" />
             <h1 className="text-3xl font-bold text-primary font-headline">Mad Catch</h1>
           </div>
         </header>
