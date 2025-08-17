@@ -24,9 +24,16 @@ interface CharacterSelectorProps {
 }
 
 async function defaultResolveImageUrl(tokenId: number): Promise<string> {
-  // Rarity.madscientists.io is the canonical source
-  return `https://rarity.madscientists.io/images/${tokenId}.png`;
+  // Ask your server to resolve the image (same behavior as nft-viewer.html)
+  const res = await fetch(`/mad-nft.php?id=${tokenId}`, { method: "GET" });
+  if (!res.ok) throw new Error("Resolver endpoint not reachable.");
+  const data = await res.json().catch(() => null);
+  if (!data || typeof data.url !== "string" || !data.url) {
+    throw new Error("Resolver returned no image URL.");
+  }
+  return data.url; // e.g. https://rektgang.mypinata.cloud/ipfs/...&pinataGatewayToken=...
 }
+
 
 export default function CharacterSelector({
   onSelectById,

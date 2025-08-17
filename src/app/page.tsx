@@ -42,18 +42,35 @@ export default function Home() {
     toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...${address.substring(address.length - 4)}` });
   };
 
-  const handleCharacterSelect = (nftId: string) => {
+  const handleCharacterSelect = async (nftId: string) => {
     if (!nftId) {
       setSelectedCharacter(defaultCharacter);
       return;
     }
-    const newCharacter: Nft = {
+  
+    try {
+      const res = await fetch(`/mad-nft.php?id=${nftId}`);
+      if (!res.ok) throw new Error("Failed to resolve NFT image.");
+      const data = await res.json();
+      const imageUrl: string = data?.url || "";
+  
+      if (!imageUrl) throw new Error("No image URL returned.");
+  
+      const newCharacter: Nft = {
         id: nftId,
         name: `Scientist #${nftId}`,
-        imageUrl: `https://rarity.madscientists.io/images/${nftId}.png`,
-    };
-    setSelectedCharacter(newCharacter);
-    toast({ title: "Character Changed", description: `Now playing as Scientist #${nftId}` });
+        imageUrl, // ✅ use the resolved Pinata/IPFS URL
+      };
+  
+      setSelectedCharacter(newCharacter);
+      toast({ title: "Character Changed", description: `Now playing as Scientist #${nftId}` });
+    } catch (err: any) {
+      toast({
+        title: "Failed to load NFT image",
+        description: err?.message || "Please try another ID.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleBackgroundSelect = (background: { id: string, name: string, imageUrl: string, hint: string }) => {
