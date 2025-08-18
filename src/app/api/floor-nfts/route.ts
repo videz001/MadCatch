@@ -1,24 +1,37 @@
-
 // app/api/floor-nfts/route.ts
 import { NextResponse } from "next/server";
 
+type Ask = {
+  collection: string;
+  token_id: string | number;
+  price?: { amount: string; denom: string };
+  coin?: { amount: string; denom: string }; // some versions use coin
+};
+
+type Nft = {
+  id: string;
+  name: string;
+  imageUrl: string;
+};
+
 export const dynamic = "force-dynamic";
 
-type Nft = { id: string; name: string; imageUrl: string };
-
-const ENDPOINTS = [
-  // Prefer the official GraphQL endpoint
-  "https://graphql.mainnet.stargaze-apis.com/graphql",
-  // Constellations indexer, if enabled for your infra
-  "https://constellations-api.mainnet.stargaze-apis.com/graphql",
-];
-
+// ====== CONFIG ======
 const COLLECTION_ADDR =
-  "stars1v8avajk64z7pppeu45ce6vv8wuxmwacdff484lqvv0vnka0cwgdqdk64sf";
+  "stars1v8avajk64z7pppeu45ce6vv8wuxmwacdff484lqvv0vnka0cwgdqdk64sf"; // your collection
 const LIMIT = 5;
 
-// --- Helpers ---
-function toHttp(uri?: string | null): string {
+// LCD endpoints, in priority order. Add your own/in-house first for reliability.
+const LCDS = [
+  process.env.STARGAZE_LCD?.trim(),
+  "https://stargaze-api.bluestake.net",
+  "https://rest.cosmos.directory/stargaze",
+].filter(Boolean) as string[];
+
+// REQUIRED: marketplace contract (global). Put this in your env.
+const MARKETPLACE_ADDR = (process.env.STARGAZE_MARKETPLACE_ADDR || "").trim();
+
+function toHttp(uri?: string): string {
   if (!uri) return "";
   if (uri.startsWith("ipfs://")) {
     return "https://cloudflare-ipfs.com/ipfs/" + uri.replace("ipfs://", "");
@@ -26,181 +39,173 @@ function toHttp(uri?: string | null): string {
   return uri;
 }
 
-async function gqlFetch(endpoint: string, query: string, variables?: any) {
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    // NOTE: do not cache schema responses too aggressively during dev
-    next: { revalidate: 120 },
-    body: JSON.stringify({ query, variables }),
-  });
-  const text = await res.text();
+function b64(obj: unknown) {
+  return Buffer.from(JSON.stringify(obj)).toString("base64");
+}
+
+async function smartQuery<T>(
+  lcd: string,
+  contract: string,
+  msg: unknown,
+  abortSignal?: AbortSignal
+): Promise<T> {
+  const url = `${lcd.replace(/\/+$/, "")}/cosmwasm/wasm/v1/contract/${contract}/smart/${b64(
+    msg
+  )}`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: abortSignal });
   if (!res.ok) {
-    throw new Error(`HTTP ${res.status} from ${endpoint}: ${text}`);
+    const text = await res.text().catch(() => "");
+    throw new Error(`LCD ${lcd} ${res.status}: ${text.slice(0, 300)}`);
   }
-  let json: any;
+  const json = (await res.json()) as { data?: T };
+  if (!json || json.data === undefined) {
+    throw new Error(`LCD ${lcd} returned no data`);
+  }
+  return json.data;
+}
+
+// Try multiple LCDs. Short-circuit on first success.
+async function withLCDs<T>(fn: (lcd: string) => Promise<T>): Promise<T> {
+  const errors: string[] = [];
+  for (const lcd of LCDS) {
+    try {
+      return await fn(lcd);
+    } catch (e: any) {
+      errors.push(`[${lcd}] ${e?.message || e}`);
+    }
+  }
+  throw new Error(`All LCDs failed:\n${errors.join("\n")}`);
+}
+
+function parseAmount(ask: Ask): number {
+  const raw = ask.price?.amount ?? ask.coin?.amount ?? "0";
+  // amounts are in micro (ustars). Convert to number for sorting (still sort-safe).
+  return Number(raw);
+}
+
+// --- Marketplace queries differ slightly by version.
+// 1) Preferred: asks_sorted_by_price { collection, order, limit }
+// 2) Fallback:  asks { collection, start_after, limit }  (then we sort client-side)
+// Both return { asks: Ask[] } or { asks: { asks: Ask[] } } depending on build.
+// We handle both shapes.
+async function queryCheapestAsks(lcd: string): Promise<Ask[]> {
+  // Preferred: sorted by price ASC on-chain
+  const q1 = {
+    asks_sorted_by_price: {
+      collection: COLLECTION_ADDR,
+      order: "asc",
+      limit: LIMIT * 2, // fetch a little extra to filter nulls/images
+    },
+  };
   try {
-    json = JSON.parse(text);
-  } catch {
-    throw new Error(`Non-JSON response from ${endpoint}: ${text.slice(0, 200)}`);
+    const data = await smartQuery<any>(lcd, MARKETPLACE_ADDR, q1);
+    const asks: Ask[] = (data.asks ?? data?.data ?? data?.result ?? data ?? []);
+    if (Array.isArray(asks) && asks.length) return asks;
+  } catch (_) {
+    // swallow and try fallback
   }
-  if (json.errors) {
-    throw new Error(
-      `GraphQL errors from ${endpoint}: ${JSON.stringify(json.errors)}`
-    );
-  }
-  return json;
+
+  // Fallback: unsorted asks, limit more and sort locally
+  const q2 = {
+    asks: {
+      collection: COLLECTION_ADDR,
+      start_after: null,
+      limit: 100,
+    },
+  };
+  const data = await smartQuery<any>(lcd, MARKETPLACE_ADDR, q2);
+  const asksAny: Ask[] = (data.asks ?? data?.data ?? data?.result ?? data ?? []);
+  return Array.isArray(asksAny) ? asksAny : [];
 }
 
-// Minimal introspection (root query fields only)
-const INTROSPECTION = `
-query Introspection {
-  __schema {
-    queryType {
-      name
-      fields { name }
-    }
-  }
+// Query SG721 for token metadata (nft_info -> token_uri + extension.name)
+async function getNftInfo(
+  lcd: string,
+  collectionAddr: string,
+  tokenId: string
+): Promise<{ token_uri?: string; name?: string }> {
+  const q = { nft_info: { token_id: tokenId } };
+  const data = await smartQuery<any>(lcd, collectionAddr, q);
+  // Data shape: { token_uri?: string, extension?: { name?: string, image?: string } }
+  const token_uri: string | undefined =
+    data.token_uri ?? data?.nft_info?.token_uri ?? data?.data?.token_uri;
+  const ext = data.extension ?? data?.nft_info?.extension ?? {};
+  const name: string | undefined = ext.name;
+  const imageFromExt: string | undefined = ext.image || ext.image_url;
+  return { token_uri: token_uri || imageFromExt, name };
 }
-`;
-
-// Attempt A: (your old idea) listings at root — many schemas won’t have this
-const QUERY_A = `
-  query FloorListings($collection: String!, $limit: Int!) {
-    listings(
-      filter: { collectionAddr: $collection, status: ACTIVE }
-      sortBy: PRICE_ASC
-      pagination: { limit: $limit }
-    ) {
-      nodes {
-        tokenId
-        price
-        token { name media { url } }
-      }
-    }
-  }
-`;
-
-// Attempt B: a common pattern is to hang tokens off a collection.
-// NOTE: This is a *best-effort* guess that works on some indexers.
-// If your schema differs, the introspection output will tell you what to call.
-const QUERY_B = `
-  query FloorTokens($collection: String!, $limit: Int!) {
-    collection(collectionAddr: $collection) {
-      tokens(
-        filter: { status: LISTED }
-        sortBy: PRICE_ASC
-        pagination: { limit: $limit }
-      ) {
-        nodes {
-          tokenId
-          price
-          token { name media { url } }
-        }
-      }
-    }
-  }
-`;
 
 export async function GET() {
-  const diag: {
-    tried: Array<{ endpoint: string; query: "A" | "B"; error?: string }>;
-    used?: { endpoint: string; query: "A" | "B" };
-    count?: number;
-    sample?: any;
-    schemaFields?: Record<string, string[]>;
-  } = { tried: [] };
-
-  for (const endpoint of ENDPOINTS) {
-    try {
-      // 1) Introspect query root to see what fields actually exist
-      let schemaFields: string[] = [];
-      try {
-        const introspection = await gqlFetch(endpoint, INTROSPECTION);
-        schemaFields =
-          introspection?.data?.__schema?.queryType?.fields?.map((f: any) => f.name) || [];
-        diag.schemaFields = diag.schemaFields || {};
-        diag.schemaFields[endpoint] = schemaFields;
-      } catch (e: any) {
-        // Don’t fail the whole request if introspection is disabled
-        diag.schemaFields = diag.schemaFields || {};
-        diag.schemaFields[endpoint] = [`(introspection failed: ${e.message})`];
-      }
-
-      // 2) Try Query A (root listings) only if the field exists
-      if (schemaFields.includes("listings")) {
-        try {
-          const jsonA = await gqlFetch(endpoint, QUERY_A, {
-            collection: COLLECTION_ADDR,
-            limit: LIMIT,
-          });
-          const items = jsonA?.data?.listings?.nodes ?? [];
-          if (items.length) {
-            const nfts: Nft[] = items.slice(0, LIMIT).map((it: any) => ({
-              id: String(it.tokenId),
-              name: it?.token?.name || `Token #${it.tokenId}`,
-              imageUrl: toHttp(it?.token?.media?.url),
-            }));
-            diag.used = { endpoint, query: "A" };
-            diag.count = nfts.length;
-            diag.sample = nfts[0];
-            return NextResponse.json(nfts, { headers: { "x-floor-source": "A" } });
-          }
-        } catch (e: any) {
-          diag.tried.push({ endpoint, query: "A", error: String(e.message) });
-        }
-      } else {
-        diag.tried.push({
-          endpoint,
-          query: "A",
-          error: `Schema has no root field "listings" (${schemaFields.join(", ")})`,
-        });
-      }
-
-      // 3) Try Query B (collection → tokens) if `collection` exists
-      if (schemaFields.includes("collection")) {
-        try {
-          const jsonB = await gqlFetch(endpoint, QUERY_B, {
-            collection: COLLECTION_ADDR,
-            limit: LIMIT,
-          });
-          const items = jsonB?.data?.collection?.tokens?.nodes ?? [];
-          if (items.length) {
-            const nfts: Nft[] = items.slice(0, LIMIT).map((it: any) => ({
-              id: String(it.tokenId),
-              name: it?.token?.name || `Token #${it.tokenId}`,
-              imageUrl: toHttp(it?.token?.media?.url),
-            }));
-            diag.used = { endpoint, query: "B" };
-            diag.count = nfts.length;
-            diag.sample = nfts[0];
-            return NextResponse.json(nfts, { headers: { "x-floor-source": "B" } });
-          }
-        } catch (e: any) {
-          diag.tried.push({ endpoint, query: "B", error: String(e.message) });
-        }
-      } else {
-        diag.tried.push({
-          endpoint,
-          query: "B",
-          error: `Schema has no root field "collection" (${schemaFields.join(", ")})`,
-        });
-      }
-    } catch (e: any) {
-      // Catastrophic endpoint failure
-      diag.tried.push({ endpoint, query: "A", error: String(e.message) });
-      diag.tried.push({ endpoint, query: "B", error: String(e.message) });
+  try {
+    if (!MARKETPLACE_ADDR) {
+      return NextResponse.json(
+        {
+          error: "Missing configuration",
+          message:
+            "Set STARGAZE_MARKETPLACE_ADDR in your environment (global Marketplace contract address).",
+        },
+        { status: 500 }
+      );
     }
-  }
 
-  // If we got here, nothing worked – return a very explicit diagnostic payload
-  return NextResponse.json(
-    {
-      error: "Could not fetch floor NFTs",
-      message:
-        "The GraphQL schema you're connecting to does not expose the fields this route expects. See diag for details.",
-      diag,
-    },
-    { status: 502 }
-  );
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12_000);
+
+    // 1) Pull asks
+    const asks = await withLCDs((lcd) => queryCheapestAsks(lcd));
+
+    // Normalize token ids to string
+    const normalized = asks
+      .map((a) => ({
+        ...a,
+        token_id: String(a.token_id),
+        micros: parseAmount(a),
+      }))
+      // filter for this collection (extra safety) and remove zero-price
+      .filter((a) => a.collection === COLLECTION_ADDR && a.micros > 0);
+
+    // If fallback path was used, ensure ascending by price
+    normalized.sort((a, b) => a.micros - b.micros);
+
+    const top = normalized.slice(0, LIMIT);
+
+    // 2) For each token, fetch metadata & image (SG721)
+    const nfts = await withLCDs(async (lcd) => {
+      const out: Nft[] = [];
+      for (const a of top) {
+        try {
+          const meta = await getNftInfo(lcd, COLLECTION_ADDR, a.token_id as string);
+          const imageUrl = toHttp(meta.token_uri);
+          out.push({
+            id: String(a.token_id),
+            name: meta.name || `Scientist #${a.token_id}`,
+            imageUrl,
+          });
+        } catch (e) {
+          // tolerate a single token failing; continue
+          // eslint-disable-next-line no-console
+          console.warn("nft_info failed for token", a.token_id, e);
+        }
+      }
+      return out;
+    });
+
+    clearTimeout(timeout);
+
+    // Filter any missing images and cap to LIMIT
+    const cleaned = nfts.filter((n) => n.imageUrl).slice(0, LIMIT);
+
+    if (!cleaned.length) {
+      throw new Error("No NFT images resolved. Check marketplace address or LCD.");
+    }
+
+    return NextResponse.json(cleaned, { headers: { "Cache-Control": "no-store" } });
+  } catch (e: any) {
+    // eslint-disable-next-line no-console
+    console.error("floor-nfts route failed:", e);
+    return NextResponse.json(
+      { error: "Failed to fetch floor NFTs (LCD)", message: String(e?.message || e) },
+      { status: 502 }
+    );
+  }
 }
