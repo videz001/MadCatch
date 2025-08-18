@@ -1,3 +1,4 @@
+
 // app/api/floor-nfts/route.ts
 import { NextResponse } from "next/server";
 import type { Nft } from "@/lib/types";
