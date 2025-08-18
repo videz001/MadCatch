@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -8,90 +9,25 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { UserCheck, Wand2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { UserCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Nft } from "@/lib/types";
-import Image from "next/image";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface CharacterSelectorProps {
-  /** Called when a valid tokenId is submitted (parent can persist this & drive gameplay) */
-  onSelectById: (id: string) => void;
-  /** The currently selected character from parent/store */
+  onSelect: (character: Nft) => void;
   selectedCharacter: Nft;
-  /** Optional: override resolver that returns an image URL for a given tokenId */
-  resolveImageUrl?: (tokenId: number) => Promise<string>;
+  defaultCharacter: Nft;
+  characters: Nft[];
 }
-
-async function defaultResolveImageUrl(tokenId: number): Promise<string> {
-  const res = await fetch(`/api/nft?id=${tokenId}`);
-  if (!res.ok) throw new Error("Resolver endpoint not reachable.");
-  const data = await res.json();
-  if (!data?.url) throw new Error("Resolver returned no image URL.");
-  return data.url;
-}
-
 
 export default function CharacterSelector({
-  onSelectById,
+  onSelect,
   selectedCharacter,
-  resolveImageUrl = defaultResolveImageUrl,
+  defaultCharacter,
+  characters,
 }: CharacterSelectorProps) {
-  const [nftId, setNftId] = React.useState("");
-  const [previewUrl, setPreviewUrl] = React.useState<string>("");
-  const [status, setStatus] = React.useState<
-    "idle" | "loading" | "ok" | "error"
-  >("idle");
-  const [errorMsg, setErrorMsg] = React.useState<string>("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg("");
-    setStatus("idle");
-    setPreviewUrl("");
-
-    const idNum = Number(nftId);
-    if (!Number.isInteger(idNum) || idNum < 0) {
-      setStatus("error");
-      setErrorMsg("Please enter a valid NFT number (integer ≥ 0).");
-      return;
-    }
-
-    setStatus("loading");
-    try {
-      const url = await resolveImageUrl(idNum);
-
-      // Optimistically preview for the user right away
-      setPreviewUrl(url);
-      setStatus("ok");
-
-      // Let parent update its store/state and wire the skin into gameplay
-      onSelectById(String(idNum));
-    } catch (err: any) {
-      setStatus("error");
-      setErrorMsg(err?.message || "Failed to load NFT image.");
-    }
-  };
-
-  // Prefer parent-selected image (authoritative), fall back to local preview
-  const displayImage =
-    selectedCharacter?.imageUrl?.length > 0
-      ? selectedCharacter.imageUrl
-      : previewUrl;
-
-  const titleText =
-    selectedCharacter?.id != null
-      ? `Scientist #${selectedCharacter.id}`
-      : previewUrl
-      ? `NFT #${nftId} (preview)`
-      : "No character selected";
-
-  const nameText =
-    selectedCharacter?.name?.length > 0
-      ? selectedCharacter.name
-      : previewUrl
-      ? `NFT #${nftId}`
-      : "—";
+  const allCharacters = [defaultCharacter, ...characters];
 
   return (
     <Card>
@@ -101,67 +37,44 @@ export default function CharacterSelector({
           <span>Select Character</span>
         </CardTitle>
         <CardDescription>
-          Enter an NFT number to use as your character.
+          Pick a scientist to play with.
         </CardDescription>
       </CardHeader>
 
       <CardContent>
-        <div className="space-y-4">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
-            <Input
-              type="text"
-              value={nftId}
-              onChange={(e) =>
-                setNftId(e.target.value.replace(/[^0-9]/g, ""))
-              }
-              placeholder="Enter NFT number (e.g., 3070)"
-              className="w-full"
-            />
-            <Button type="submit" size="icon" disabled={status === "loading"}>
-              <Wand2 className={status === "loading" ? "animate-pulse" : ""} />
-            </Button>
-          </form>
-
-          {status === "error" && (
-            <div className="text-sm text-destructive">{errorMsg}</div>
-          )}
-
-          <div className="mt-2 flex flex-col items-center justify-center gap-2 p-4 border rounded-lg bg-muted">
-            <h3 className="font-semibold">Current Character</h3>
-
-            <div className="relative rounded-full bg-muted-foreground/20 object-cover aspect-square w-24 h-24 flex items-center justify-center overflow-hidden">
-              {displayImage ? (
+        <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+          <div className="flex w-max space-x-4 pb-4">
+            {allCharacters.map((character) => (
+              <div
+                key={character.id}
+                className={cn(
+                  "group relative w-40 h-48 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg border-2 transition-all",
+                  selectedCharacter.id === character.id
+                    ? "border-primary shadow-lg shadow-primary/30"
+                    : "border-transparent hover:border-muted-foreground"
+                )}
+                onClick={() => onSelect(character)}
+              >
+                <div className="absolute inset-0 bg-muted-foreground/20 z-0" />
                 <Image
-                  src={displayImage}
-                  alt={titleText}
-                  width={96}
-                  height={96}
-                  className="object-cover"
+                  src={character.imageUrl}
+                  alt={character.name}
+                  width={160}
+                  height={192}
                   unoptimized
                   crossOrigin="anonymous"
-                  onError={() => {
-                    setStatus("error");
-                    setErrorMsg(
-                      "Image failed to load. Try another NFT or check endpoint."
-                    );
-                    setPreviewUrl("");
-                  }}
+                  className="h-full w-full object-cover transition-transform group-hover:scale-105"
                 />
-              ) : (
-                <div className="text-xs text-muted-foreground">No image</div>
-              )}
-            </div>
-
-            <p className="text-sm text-center font-medium truncate w-full">
-              {nameText}
-            </p>
-
-            {/* Helpful status hint */}
-            {status === "loading" && (
-              <p className="text-xs text-muted-foreground">Resolving image…</p>
-            )}
+                <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-center">
+                  <p className="truncate text-sm font-semibold text-white">
+                    {character.name}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       </CardContent>
     </Card>
   );

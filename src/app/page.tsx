@@ -22,6 +22,15 @@ const backgrounds = [
 
 const defaultCharacter: Nft = { id: "default", name: "Default Scientist", imageUrl: "https://i.imgur.com/6nVF8r7.png" };
 
+// In a real app, this would be fetched from the Stargaze API
+const floorCharacters: Nft[] = [
+  { id: "3070", name: "Scientist #3070", imageUrl: "https://rarity.madscientists.io/images/3070.png" },
+  { id: "102", name: "Scientist #102", imageUrl: "https://rarity.madscientists.io/images/102.png" },
+  { id: "4888", name: "Scientist #4888", imageUrl: "https://rarity.madscientists.io/images/4888.png" },
+  { id: "333", name: "Scientist #333", imageUrl: "https://rarity.madscientists.io/images/333.png" },
+  { id: "786", name: "Scientist #786", imageUrl: "https://rarity.madscientists.io/images/786.png" },
+];
+
 export default function Home() {
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
   
@@ -42,37 +51,11 @@ export default function Home() {
     toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...${address.substring(address.length - 4)}` });
   };
 
-  const handleCharacterSelect = async (nftId: string) => {
-    if (!nftId) {
-      setSelectedCharacter(defaultCharacter);
-      return;
-    }
-  
-    try {
-      const res = await fetch(`/api/nft?id=${nftId}`);
-      if (!res.ok) throw new Error("Failed to resolve NFT image.");
-      const data = await res.json();
-      const imageUrl: string = data?.url || "";
-  
-      if (!imageUrl) throw new Error("No image URL returned.");
-  
-      const newCharacter: Nft = {
-        id: nftId,
-        name: `Scientist #${nftId}`,
-        imageUrl, // ✅ use the resolved Pinata/IPFS URL
-      };
-  
-      setSelectedCharacter(newCharacter);
-      toast({ title: "Character Changed", description: `Now playing as Scientist #${nftId}` });
-    } catch (err: any) {
-      toast({
-        title: "Failed to load NFT image",
-        description: err?.message || "Please try another ID.",
-        variant: "destructive",
-      });
-    }
+  const handleCharacterSelect = (character: Nft) => {
+    setSelectedCharacter(character);
+    toast({ title: "Character Changed", description: `Now playing as ${character.name}` });
   };
-
+  
   const handleBackgroundSelect = (background: { id: string, name: string, imageUrl: string, hint: string }) => {
     setSelectedBackground(background);
   };
@@ -188,8 +171,10 @@ export default function Home() {
               </TabsList>
               <TabsContent value="character">
                 <CharacterSelector
-                  onSelectById={handleCharacterSelect}
+                  onSelect={handleCharacterSelect}
                   selectedCharacter={selectedCharacter}
+                  defaultCharacter={defaultCharacter}
+                  characters={floorCharacters}
                 />
               </TabsContent>
               <TabsContent value="leaderboard">
