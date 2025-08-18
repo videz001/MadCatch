@@ -41,7 +41,18 @@ export default function Leaderboard({ players }: LeaderboardProps) {
                     {players.map((player) => (
                     <TableRow key={player.rank}>
                         <TableCell className="font-medium">{player.rank}</TableCell>
-                        <TableCell>
+                        <TableCell className="flex items-center gap-2">
+                            {player.characterUrl && (
+                                <Image
+                                    src={player.characterUrl}
+                                    alt="Player character"
+                                    width={24}
+                                    height={24}
+                                    className="rounded-full w-6 h-6 object-cover"
+                                    unoptimized
+                                    crossOrigin="anonymous"
+                                />
+                            )}
                             <span className="font-mono">{truncateAddress(player.address)}</span>
                         </TableCell>
                         <TableCell className="text-right font-bold text-primary">{player.score}</TableCell>

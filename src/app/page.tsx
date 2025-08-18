@@ -22,15 +22,6 @@ const backgrounds = [
 
 const defaultCharacter: Nft = { id: "default", name: "Default Scientist", imageUrl: "https://i.imgur.com/6nVF8r7.png" };
 
-// In a real app, this would be fetched from the Stargaze API
-const floorCharacters: Nft[] = [
-  { id: "3070", name: "Scientist #3070", imageUrl: "https://rarity.madscientists.io/images/3070.png" },
-  { id: "102", name: "Scientist #102", imageUrl: "https://rarity.madscientists.io/images/102.png" },
-  { id: "4888", name: "Scientist #4888", imageUrl: "https://rarity.madscientists.io/images/4888.png" },
-  { id: "333", name: "Scientist #333", imageUrl: "https://rarity.madscientists.io/images/333.png" },
-  { id: "786", name: "Scientist #786", imageUrl: "https://rarity.madscientists.io/images/786.png" },
-];
-
 export default function Home() {
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
   
@@ -87,12 +78,19 @@ export default function Home() {
       setLeaderboardData(prevLeaderboard => {
         const existingPlayerIndex = prevLeaderboard.findIndex(p => p.address === walletAddress);
         let newLeaderboard = [...prevLeaderboard];
+        const newPlayer = { 
+          address: walletAddress, 
+          score: finalScore, 
+          rank: 0,
+          characterUrl: selectedCharacter.imageUrl 
+        };
+
         if (existingPlayerIndex !== -1) {
           if (finalScore > newLeaderboard[existingPlayerIndex].score) {
-            newLeaderboard[existingPlayerIndex] = { ...newLeaderboard[existingPlayerIndex], score: finalScore };
+            newLeaderboard[existingPlayerIndex] = newPlayer;
           }
         } else {
-          newLeaderboard.push({ address: walletAddress, score: finalScore, rank: 0 });
+          newLeaderboard.push(newPlayer);
         }
         return newLeaderboard.sort((a, b) => b.score - a.score).map((player, index) => ({ ...player, rank: index + 1 }));
       });
@@ -174,7 +172,6 @@ export default function Home() {
                   onSelect={handleCharacterSelect}
                   selectedCharacter={selectedCharacter}
                   defaultCharacter={defaultCharacter}
-                  characters={floorCharacters}
                 />
               </TabsContent>
               <TabsContent value="leaderboard">
