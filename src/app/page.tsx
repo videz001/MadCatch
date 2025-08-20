@@ -22,6 +22,14 @@ const backgrounds = [
 
 const defaultCharacter: Nft = { id: "default", name: "Default Scientist", imageUrl: "https://i.imgur.com/6nVF8r7.png" };
 
+const featuredCharacters: Nft[] = [
+  { id: '2580', name: 'Scientist #2580', imageUrl: 'https://rarity.madscientists.io/images/2580.png' },
+  { id: '3618', name: 'Scientist #3618', imageUrl: 'https://rarity.madscientists.io/images/3618.png' },
+  { id: '2588', name: 'Scientist #2588', imageUrl: 'https://rarity.madscientists.io/images/2588.png' },
+  { id: '4036', name: 'Scientist #4036', imageUrl: 'https://rarity.madscientists.io/images/4036.png' },
+  { id: '3815', name: 'Scientist #3815', imageUrl: 'https://rarity.madscientists.io/images/3815.png' },
+];
+
 export default function Home() {
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
   
@@ -172,6 +180,7 @@ export default function Home() {
                   onSelect={handleCharacterSelect}
                   selectedCharacter={selectedCharacter}
                   defaultCharacter={defaultCharacter}
+                  characters={featuredCharacters}
                 />
               </TabsContent>
               <TabsContent value="leaderboard">
