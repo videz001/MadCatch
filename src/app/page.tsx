@@ -190,6 +190,11 @@ export default function Home() {
                   />
               </TabsContent>
             </Tabs>
+
+            <div className="text-center text-sm text-muted-foreground p-4 border-dashed border rounded-lg">
+              <p>Want to mint an unrevealed Mad Scientist?</p>
+              <p className="font-bold text-foreground">Everything is an Experiment!</p>
+            </div>
           </div>
         </div>
       </div>
