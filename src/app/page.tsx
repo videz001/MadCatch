@@ -128,6 +128,11 @@ export default function Home() {
             <Beaker className="w-10 h-10 text-primary" />
             <h1 className="text-3xl font-bold text-primary font-headline">Mad Catch</h1>
           </div>
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Built by <a href="https://x.com/videz01" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">x.com/videz01</a>
+            </p>
+          </div>
         </header>
 
         <div className="mb-6 p-4 border rounded-lg bg-card text-center">
@@ -243,3 +248,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
