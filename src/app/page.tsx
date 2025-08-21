@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Beaker, Heart, Trophy, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,9 +39,30 @@ export default function Home() {
 
   const MAX_MISSES = 5;
 
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      const response = await fetch('/api/leaderboard', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Failed to fetch leaderboard');
+      const data: Player[] = await response.json();
+      setLeaderboardData(data);
+    } catch (error) {
+      console.error(error);
+      toast({ title: 'Error', description: 'Could not load leaderboard.', variant: 'destructive' });
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
+
   const handleConnect = (address: string) => {
     setWalletAddress(address);
     toast({ title: "Wallet Connected", description: `Address: ${address.substring(0, 10)}...${address.substring(address.length - 4)}` });
+  };
+
+  const handleDisconnect = () => {
+    setWalletAddress(null);
+    toast({ title: "Wallet Disconnected" });
   };
 
   const handleCharacterSelect = (character: Nft) => {
@@ -68,7 +89,7 @@ export default function Home() {
     setGameState("playing");
   };
 
-  const handleGameOver = (finalScore: number) => {
+  const handleGameOver = async (finalScore: number) => {
     setGameState("over");
     toast({
       title: "Game Over!",
@@ -77,25 +98,22 @@ export default function Home() {
     });
 
     if (walletAddress) {
-      setLeaderboardData(prevLeaderboard => {
-        const existingPlayerIndex = prevLeaderboard.findIndex(p => p.address === walletAddress);
-        let newLeaderboard = [...prevLeaderboard];
-        const newPlayer = { 
-          address: walletAddress, 
-          score: finalScore, 
-          rank: 0,
-          characterUrl: selectedCharacter.imageUrl 
-        };
-
-        if (existingPlayerIndex !== -1) {
-          if (finalScore > newLeaderboard[existingPlayerIndex].score) {
-            newLeaderboard[existingPlayerIndex] = newPlayer;
-          }
-        } else {
-          newLeaderboard.push(newPlayer);
-        }
-        return newLeaderboard.sort((a, b) => b.score - a.score).map((player, index) => ({ ...player, rank: index + 1 }));
-      });
+      try {
+        await fetch('/api/leaderboard', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            address: walletAddress,
+            score: finalScore,
+            characterUrl: selectedCharacter.imageUrl,
+          }),
+        });
+        // Refresh leaderboard after submitting score
+        await fetchLeaderboard();
+      } catch (error) {
+        console.error("Failed to submit score", error);
+        toast({ title: 'Error', description: 'Could not submit your score to the leaderboard.', variant: 'destructive' });
+      }
     }
   };
 
@@ -161,7 +179,11 @@ export default function Home() {
           </div>
 
           <div className="lg:col-span-1 space-y-6">
-            <WalletConnect onConnect={handleConnect} address={walletAddress} />
+            <WalletConnect 
+              onConnect={handleConnect} 
+              onDisconnect={handleDisconnect}
+              address={walletAddress} 
+            />
             
             <Tabs defaultValue="character" className="w-full">
               <TabsList className="grid w-full grid-cols-3">

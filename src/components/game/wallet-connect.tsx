@@ -5,11 +5,12 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Wallet, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Loader2, Wallet, CheckCircle, AlertTriangle, LogOut } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 interface WalletConnectProps {
   onConnect: (address: string) => void;
+  onDisconnect: () => void;
   address: string | null;
 }
 
@@ -21,7 +22,7 @@ declare global {
   }
 }
 
-export default function WalletConnect({ onConnect, address }: WalletConnectProps) {
+export default function WalletConnect({ onConnect, onDisconnect, address }: WalletConnectProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -67,17 +68,23 @@ export default function WalletConnect({ onConnect, address }: WalletConnectProps
           <Wallet className="w-6 h-6 text-primary" />
           <span>Wallet</span>
         </CardTitle>
-        <CardDescription>Connect to play with your NFTs.</CardDescription>
+        <CardDescription>Connect to play and save your score.</CardDescription>
       </CardHeader>
       <CardContent>
         {address ? (
-          <Alert variant="default" className="border-primary/50 bg-primary/10">
-            <CheckCircle className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary">Connected!</AlertTitle>
-            <AlertDescription className="truncate font-mono text-xs">
-              {address}
-            </AlertDescription>
-          </Alert>
+          <div className="space-y-3">
+            <Alert variant="default" className="border-primary/50 bg-primary/10">
+              <CheckCircle className="h-4 w-4 text-primary" />
+              <AlertTitle className="text-primary">Connected!</AlertTitle>
+              <AlertDescription className="truncate font-mono text-xs">
+                {address}
+              </AlertDescription>
+            </Alert>
+            <Button onClick={onDisconnect} variant="outline" className="w-full">
+              <LogOut className="mr-2 h-4 w-4" />
+              Disconnect
+            </Button>
+          </div>
         ) : (
           <div className="space-y-4">
             <Button onClick={handleConnect} disabled={isLoading} className="w-full">
