@@ -27,6 +27,12 @@ const nextConfig: NextConfig = {
         hostname: 'i.imgur.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'madcatch.xyz',
+        port: '',
+        pathname: '/img/**',
       }
     ],
   },
