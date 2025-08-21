@@ -58,12 +58,11 @@ export default function CharacterSelector({
             >
                 <div className="absolute inset-0 bg-muted-foreground/20 z-0" />
                 {character.imageUrl ? (
-                    <Image
+                    <img
                     src={character.imageUrl}
                     alt={character.name}
                     width={160}
                     height={192}
-                    unoptimized
                     crossOrigin="anonymous"
                     className="h-full w-full object-cover transition-transform group-hover:scale-105"
                     />

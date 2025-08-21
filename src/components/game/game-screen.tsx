@@ -2,7 +2,6 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { useGameLogic } from '@/hooks/use-game-logic';
-import Image from 'next/image';
 
 interface GameScreenProps {
   characterImage: string;
@@ -69,13 +68,12 @@ export default function GameScreen({
               height: '80px',
             }}
           >
-            <Image
+            <img
                 src={characterImage}
                 alt="Selected Character"
                 width={80}
                 height={80}
                 className="object-contain"
-                unoptimized
                 crossOrigin="anonymous"
             />
           </div>
@@ -92,12 +90,11 @@ export default function GameScreen({
                 height: '40px'
               }}
             >
-              <Image 
+              <img 
                 src={flaskImageUrl} 
                 alt="Falling Flask" 
                 width={40} 
                 height={40}
-                unoptimized
               />
             </div>
           )}
