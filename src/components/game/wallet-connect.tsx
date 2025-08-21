@@ -1,10 +1,11 @@
+
 "use client";
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Wallet, CheckCircle } from 'lucide-react';
+import { Loader2, Wallet, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 interface WalletConnectProps {
@@ -12,39 +13,42 @@ interface WalletConnectProps {
   address: string | null;
 }
 
+// Extend the Window interface to include Keplr
+declare global {
+  interface Window {
+    keplr?: any;
+    getOfflineSigner?: any;
+  }
+}
+
 export default function WalletConnect({ onConnect, address }: WalletConnectProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-
-  const generateFakeAddress = () => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let result = 'osmo1';
-    for (let i = 0; i < 38; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  };
+  const chainId = "osmosis-1";
 
   const handleConnect = async () => {
     setIsLoading(true);
     setError(null);
 
-    // This simulates checking for and connecting to Keplr wallet.
-    // In a real app, you would interact with `window.keplr`.
     try {
-      if (typeof window.keplr === 'undefined') {
-        // This is a mock, in a real scenario we could guide the user to install Keplr.
-        console.warn("Keplr not found, simulating connection.");
+      if (!window.keplr) {
+        throw new Error("Keplr extension not found. Please install it.");
       }
-      
-      // Simulating a successful connection
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const fakeAddress = generateFakeAddress();
-      onConnect(fakeAddress);
 
-    } catch (err) {
-      const errorMessage = "Failed to connect wallet. Please try again.";
+      await window.keplr.enable(chainId);
+      const offlineSigner = window.getOfflineSigner(chainId);
+      const accounts = await offlineSigner.getAccounts();
+      
+      if (accounts.length > 0) {
+        const userAddress = accounts[0].address;
+        onConnect(userAddress);
+      } else {
+        throw new Error("No accounts found in Keplr wallet.");
+      }
+
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to connect wallet. Please try again.";
       setError(errorMessage);
       toast({
         variant: "destructive",
@@ -70,7 +74,7 @@ export default function WalletConnect({ onConnect, address }: WalletConnectProps
           <Alert variant="default" className="border-primary/50 bg-primary/10">
             <CheckCircle className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary">Connected!</AlertTitle>
-            <AlertDescription className="truncate">
+            <AlertDescription className="truncate font-mono text-xs">
               {address}
             </AlertDescription>
           </Alert>
@@ -86,7 +90,13 @@ export default function WalletConnect({ onConnect, address }: WalletConnectProps
                 'Connect Keplr Wallet'
               )}
             </Button>
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && (
+              <Alert variant="destructive" className="mt-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
           </div>
         )}
       </CardContent>
