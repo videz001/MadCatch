@@ -239,7 +239,7 @@ export default function Home() {
             </Tabs>
 
             <div className="text-center text-sm text-muted-foreground p-4 border-dashed border rounded-lg">
-              <p>Want to mint an unrevealed Mad Scientist?</p>
+              <p>Want to mint an unrevealed Mad Scientist? <a href="https://app.mygateway.io/minting/mad-scientists" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Mint Link</a></p>
               <p className="font-bold text-foreground">Everything is an Experiment!</p>
             </div>
           </div>
