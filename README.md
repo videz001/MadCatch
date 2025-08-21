@@ -1,5 +1,8 @@
-# Firebase Studio
+# MadCatch
 
-This is a NextJS starter in Firebase Studio.
+This is a simple Game with Mad Scientists NFTs.
+Let users connect osmosis wallet eg: Keplr.
+Choose  either default character or NFTs that are still unrevealed from Mad Scientists NFT set!
+Play with left and right on your keyboard to catch the lab.
 
-To get started, take a look at src/app/page.tsx.
+Everything is an Experiment!
