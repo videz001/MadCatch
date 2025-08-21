@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useCallback, useEffect } from 'react';
@@ -32,7 +33,7 @@ export default function Home() {
   const [gameState, setGameState] = React.useState<"ready" | "playing" | "over">("ready");
   const [score, setScore] = React.useState(0);
   const [misses, setMisses] = React.useState(0);
-  const [isMuted, setIsMuted] = React.useState(false);
+  const [isMuted, setIsMuted] = React.useState(true);
 
   const { toast } = useToast();
   const [leaderboardData, setLeaderboardData] = React.useState<Player[]>([]);
