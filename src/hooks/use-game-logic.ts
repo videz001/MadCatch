@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -127,13 +128,15 @@ export const useGameLogic = ({
             currentFlask.x + FLASK_WIDTH > currentCharacterX
           ) {
             scoreRef.current += 1;
-            onScoreUpdate(scoreRef.current);
+            // Defer state update to next frame to avoid render-in-render errors
+            requestAnimationFrame(() => onScoreUpdate(scoreRef.current));
             playCatchSound();
             spawnFlask();
             return null; // Remove caught flask
           } else if (newFlaskY > gameAreaHeight) {
             missesRef.current += 1;
-            onMiss(missesRef.current);
+            // Defer state update to next frame
+            requestAnimationFrame(() => onMiss(missesRef.current));
             if (missesRef.current >= maxMisses) {
               onGameOver(scoreRef.current);
             } else {
