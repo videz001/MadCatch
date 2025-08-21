@@ -11,6 +11,7 @@ interface GameScreenProps {
   onMiss: (misses: number) => void;
   maxMisses: number;
   isPlaying: boolean;
+  isMuted: boolean;
 }
 
 const flaskImageUrl = 'https://i.imgur.com/oEvGej0.png';
@@ -23,6 +24,7 @@ export default function GameScreen({
   onMiss,
   maxMisses,
   isPlaying,
+  isMuted,
 }: GameScreenProps) {
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -46,6 +48,7 @@ export default function GameScreen({
     gameAreaHeight: dimensions.height,
     maxMisses,
     isPlaying,
+    isMuted,
     onGameOver,
     onScoreUpdate,
     onMiss

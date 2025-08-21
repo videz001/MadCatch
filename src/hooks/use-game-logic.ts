@@ -11,6 +11,8 @@ const FLASK_HEIGHT = 40;
 const INITIAL_FLASK_SPEED = 4;
 const FLASK_ACCELERATION = 0.2;
 
+const catchSoundUrl = 'https://madcatch.xyz/sound/effect.mp3';
+
 interface Flask {
   id: number;
   x: number;
@@ -23,6 +25,7 @@ interface UseGameLogicProps {
   gameAreaHeight: number;
   maxMisses: number;
   isPlaying: boolean;
+  isMuted: boolean;
   onGameOver: (score: number) => void;
   onScoreUpdate: (score: number) => void;
   onMiss: (misses: number) => void;
@@ -33,6 +36,7 @@ export const useGameLogic = ({
   gameAreaHeight,
   maxMisses,
   isPlaying,
+  isMuted,
   onGameOver,
   onScoreUpdate,
   onMiss
@@ -45,6 +49,19 @@ export const useGameLogic = ({
   const velocityXRef = useRef(INITIAL_SPEED);
   const keysRef = useRef<{ [key: string]: boolean }>({});
   const gameLoopRef = useRef<number>();
+  const catchAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Initialize audio on the client side
+    catchAudioRef.current = new Audio(catchSoundUrl);
+  }, []);
+
+  const playCatchSound = useCallback(() => {
+    if (!isMuted && catchAudioRef.current) {
+      catchAudioRef.current.currentTime = 0;
+      catchAudioRef.current.play().catch(err => console.error("Audio play failed:", err));
+    }
+  }, [isMuted]);
 
   const spawnFlask = useCallback(() => {
     if (gameAreaWidth > 0 && isPlaying) {
@@ -111,6 +128,7 @@ export const useGameLogic = ({
           ) {
             scoreRef.current += 1;
             onScoreUpdate(scoreRef.current);
+            playCatchSound();
             spawnFlask();
             return null; // Remove caught flask
           } else if (newFlaskY > gameAreaHeight) {
@@ -142,7 +160,7 @@ export const useGameLogic = ({
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [isPlaying, gameAreaWidth, gameAreaHeight, maxMisses, onGameOver, onScoreUpdate, onMiss, spawnFlask, characterX]);
+  }, [isPlaying, gameAreaWidth, gameAreaHeight, maxMisses, onGameOver, onScoreUpdate, onMiss, spawnFlask, characterX, playCatchSound]);
 
 
   // Keyboard Controls

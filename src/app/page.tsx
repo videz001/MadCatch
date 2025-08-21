@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect } from 'react';
-import { Beaker, Heart, Trophy, Wand2 } from "lucide-react";
+import { Beaker, Heart, Trophy, Wand2, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,6 +32,8 @@ export default function Home() {
   const [gameState, setGameState] = React.useState<"ready" | "playing" | "over">("ready");
   const [score, setScore] = React.useState(0);
   const [misses, setMisses] = React.useState(0);
+  const [isMuted, setIsMuted] = React.useState(false);
+
   const { toast } = useToast();
   const [leaderboardData, setLeaderboardData] = React.useState<Player[]>([]);
   
@@ -172,6 +174,7 @@ export default function Home() {
                     onMiss={setMisses}
                     maxMisses={MAX_MISSES}
                     isPlaying={gameState === "playing"}
+                    isMuted={isMuted}
                   />
                 </div>
                 <div className="absolute top-4 left-4 z-10 bg-background/80 p-3 rounded-lg flex items-center gap-4">
@@ -184,6 +187,12 @@ export default function Home() {
                     <span>{MAX_MISSES - misses}</span>
                   </div>
                 </div>
+                 <div className="absolute top-4 right-4 z-10">
+                    <Button variant="ghost" size="icon" onClick={() => setIsMuted(!isMuted)}>
+                      {isMuted ? <VolumeX className="w-6 h-6"/> : <Volume2 className="w-6 h-6"/>}
+                      <span className="sr-only">Mute</span>
+                    </Button>
+                 </div>
               </CardContent>
             </Card>
           </div>
