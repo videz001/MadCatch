@@ -127,6 +127,16 @@ export default function Home() {
           </div>
         </header>
 
+        <div className="mb-6 p-4 border rounded-lg bg-card text-center">
+            <ol className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8 text-muted-foreground">
+                <li className="flex items-center gap-2"><span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold text-sm">1</span> Connect Osmosis wallet</li>
+                <li className="flex items-center gap-2"><span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold text-sm">2</span> Choose character</li>
+                <li className="flex items-center gap-2"><span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold text-sm">3</span> Choose background</li>
+                <li className="flex items-center gap-2"><span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold text-sm">4</span> Start game</li>
+            </ol>
+        </div>
+
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Card className="overflow-hidden relative shadow-lg shadow-primary/20">
