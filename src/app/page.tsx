@@ -1,10 +1,9 @@
 "use client";
 
 import React from 'react';
-import Image from "next/image";
 import { Beaker, Heart, Trophy, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WalletConnect from "@/components/game/wallet-connect";
 import CharacterSelector from "@/components/game/character-selector";
@@ -13,6 +12,7 @@ import BackgroundSelector from "@/components/game/background-selector";
 import GameScreen from "@/components/game/game-screen";
 import type { Nft, Player } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { useMadcatchTop5 } from "@/hooks/use-madcatch-top5";
 
 const backgrounds = [
   { id: "bg1", name: "Lab", imageUrl: "https://i.imgur.com/X4RApaE.png", hint: "science lab" },
@@ -21,14 +21,6 @@ const backgrounds = [
 ];
 
 const defaultCharacter: Nft = { id: "default", name: "Default Scientist", imageUrl: "https://i.imgur.com/6nVF8r7.png" };
-
-const featuredCharacters: Nft[] = [
-  { id: '2580', name: 'Scientist #2580', imageUrl: 'https://rarity.madscientists.io/images/2580.png' },
-  { id: '3618', name: 'Scientist #3618', imageUrl: 'https://rarity.madscientists.io/images/3618.png' },
-  { id: '2588', name: 'Scientist #2588', imageUrl: 'https://rarity.madscientists.io/images/2588.png' },
-  { id: '4036', name: 'Scientist #4036', imageUrl: 'https://rarity.madscientists.io/images/4036.png' },
-  { id: '3815', name: 'Scientist #3815', imageUrl: 'https://rarity.madscientists.io/images/3815.png' },
-];
 
 export default function Home() {
   const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
@@ -42,6 +34,8 @@ export default function Home() {
   const [misses, setMisses] = React.useState(0);
   const { toast } = useToast();
   const [leaderboardData, setLeaderboardData] = React.useState<Player[]>([]);
+  
+  const { items: featuredCharacters, loading: loadingCharacters, error: characterError } = useMadcatchTop5();
 
   const MAX_MISSES = 5;
 
@@ -181,6 +175,8 @@ export default function Home() {
                   selectedCharacter={selectedCharacter}
                   defaultCharacter={defaultCharacter}
                   characters={featuredCharacters}
+                  isLoading={loadingCharacters}
+                  error={characterError}
                 />
               </TabsContent>
               <TabsContent value="leaderboard">
