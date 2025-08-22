@@ -130,7 +130,7 @@ export default function Home() {
           </div>
           <div>
             <p className="text-sm text-muted-foreground">
-              Built by <a href="https://x.com/videz01" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">x.com/videz01</a>
+              Built by <a href="https://x.com/videz" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">x.com/videz</a>
             </p>
           </div>
         </header>
