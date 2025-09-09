@@ -42,7 +42,6 @@ export async function POST(req: NextRequest) {
     }
 
     const leaderboard = await getLeaderboard();
-
     const existingPlayerIndex = leaderboard.findIndex(p => p.address === address);
 
     if (existingPlayerIndex !== -1) {
@@ -52,8 +51,10 @@ export async function POST(req: NextRequest) {
         leaderboard[existingPlayerIndex].characterUrl = characterUrl;
       }
     } else {
-      // New player
-      leaderboard.push({ address, score, characterUrl, rank: 0 });
+      // New player, check if they should be on the leaderboard
+      if (leaderboard.length < MAX_LEADERBOARD_ENTRIES || score > (leaderboard[leaderboard.length - 1]?.score ?? 0)) {
+        leaderboard.push({ address, score, characterUrl, rank: 0 }); // Rank will be recalculated in saveLeaderboard
+      }
     }
 
     await saveLeaderboard(leaderboard);
